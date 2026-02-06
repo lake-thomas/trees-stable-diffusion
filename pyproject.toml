@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trees-sd"
+version = "0.1.0"
+description = "Stable Diffusion fine-tuning with LoRA for tree images from iNaturalist and Autoarborist"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Trees SD Team"}
+]
+dependencies = [
+    "torch>=2.0.0",
+    "diffusers>=0.25.0",
+    "transformers>=4.35.0",
+    "accelerate>=0.25.0",
+    "peft>=0.7.0",
+    "datasets>=2.14.0",
+    "pillow>=10.0.0",
+    "numpy>=1.24.0",
+    "pyyaml>=6.0",
+    "tqdm>=4.66.0",
+    "wandb>=0.16.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+]
+
+[project.scripts]
+trees-sd-train = "trees_sd.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["trees_sd*"]
