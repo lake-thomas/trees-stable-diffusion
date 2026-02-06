@@ -1,0 +1,20 @@
+{
+  "experiment": "sd1-5-lora-mini-test",
+  "model_path": "C:/users/talake2/Desktop/sd1.5/model_cache/sd-legacy_stable-diffusion-v1-5",
+  "train_data_dir": "C:/users/talake2/Desktop/sd1.5/sd-genus-images/aa",
+  "output_path": "C:/users/talake2/Desktop/sd1.5/lora-outputs/aa",
+  "latents_cache_dir": "C:/users/talake2/Desktop/sd1.5/sd-latents-outputs/aa",
+  "selected_genera": ["magnolia", "ailanthus"],
+  "resolution": 512,
+  "train_batch_size": 2,
+  "gradient_accumulation_steps": 2,
+  "epochs": 2,
+  "learning_rate": 1e-4,
+  "mixed_precision": "bf16",
+  "checkpointing_steps": 500,
+  "validation_epochs": 1,
+  "dataloader_num_workers": 0,
+  "use_wandb": false,
+  "enable_xformers": false,
+  "precompute_latents": true
+}

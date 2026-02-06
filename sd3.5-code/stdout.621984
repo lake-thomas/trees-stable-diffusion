@@ -1,0 +1,94 @@
+
+============================================================
+TRAINING CONFIGURATION
+============================================================
+Model: /share/rkmeente/btfarre2/model/sd3_medium_incl_clips_t5xxlfp8.safetensors
+Genera to train: 100
+Resolution: 1024
+Batch size: 4
+Gradient accumulation: 4
+Epochs: 10
+Learning rate: 0.0001
+============================================================
+
+
+============================================================
+TRAINING LORA FOR: acer
+============================================================
+
+Launching training with command:
+/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/bin/python /home/btfarre2/gsv_host_detector/tree_classification/v3/train_text_to_image_lora.py --pretrained_model_name_or_path=/share/rkmeente/btfarre2/model/sd3_medium_incl_clips_t5xxlfp8.safetensors --train_data_dir=/rs1/researchers/c/cmjone25/auto_arborist_cvpr2022_v0.15/data/tree_classification/aa_inat_combined/full_100_genera_train_test_sept24/train_full/acer --dataloader_num_workers=4 --resolution=1024 --center_crop --random_flip --train_batch_size=4 --gradient_accumulation_steps=4 --num_train_epochs=10 --learning_rate=0.0001 --lr_scheduler=constant --lr_warmup_steps=0 --seed=42 --output_dir=/share/rkmeente/btfarre2/stablediffusion-sd3/lora-acer --validation_prompt=a street-level Google Street View photograph of a tree, genus acer, urban environment --validation_epochs=1 --checkpointing_steps=500 --checkpoints_total_limit=2 --mixed_precision=fp16 --report_to=none 
+
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@gpu26>
+Subject: Job 621984: <sd_modular> in cluster <Hazel> Exited
+
+Job <sd_modular> was submitted from host <login03.hpc.ncsu.edu> by user <btfarre2> in cluster <Hazel> at Fri Dec  5 01:07:10 2025
+Job was executed on host(s) <4*gpu26>, in queue <gpu>, as user <btfarre2> in cluster <Hazel> at Fri Dec  5 01:07:12 2025
+</home/btfarre2> was used as the home directory.
+</home/btfarre2/gsv_host_detector/tree_classification/v3> was used as the working directory.
+Started at Fri Dec  5 01:07:12 2025
+Terminated at Fri Dec  5 01:29:01 2025
+Results reported at Fri Dec  5 01:29:01 2025
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -n 4
+#BSUB -W 2880
+#BSUB -J sd_modular
+#BSUB -o stdout.%J
+#BSUB -e stderr.%J
+#BSUB -q gpu
+#BSUB -R span[hosts=1]
+#BSUB -gpu "num=1:mode=shared:mps=no"
+#BSUB -R "select[ h100 || a100 || l40 || l40s ]"
+#BSUB -R rusage[mem=64]
+
+module load conda
+source activate /usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch
+
+export HF_DATASETS_CACHE=/share/rkmeente/btfarre2/model/hf_cache/datasets
+export TRANSFORMERS_CACHE=/share/rkmeente/btfarre2/model/hf_cache
+export HF_HOME=/share/rkmeente/btfarre2/model/hf_cache
+export TMPDIR=/share/rkmeente/btfarre2/tmp
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+export PATH=/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/bin:$PATH
+export PYTHONPATH=$PYTHONPATH:/home/btfarre2/gsv_host_detector/tree_classification
+
+cd /home/btfarre2/gsv_host_detector/tree_classification
+
+python -m v3 --config "/home/btfarre2/gsv_host_detector/tree_classification/v3/modular_config.json"
+
+conda deactivate
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 130.
+
+Resource usage summary:
+
+    CPU time :                                   24.64 sec.
+    Max Memory :                                 1 GB
+    Average Memory :                             0.98 GB
+    Total Requested Memory :                     64.00 GB
+    Delta Memory :                               63.00 GB
+    Max Swap :                                   -
+    Max Processes :                              5
+    Max Threads :                                9
+    Run time :                                   1322 sec.
+    Turnaround time :                            1311 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <stderr.621984> for stderr output of this job.
+

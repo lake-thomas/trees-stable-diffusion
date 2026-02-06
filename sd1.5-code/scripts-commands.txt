@@ -1,0 +1,7 @@
+python make_genus_splits.py
+
+python precompute_latents.py --data_dir "C:/Users/talake2/Desktop/sd1.5/sd-genus-images/aa/ailanthus/lora" --output_dir "C:/Users/talake2/Desktop/sd1.5/sd-latents-outputs/aa/ailanthus" --model_cache "C:/Users/talake2/Desktop/sd1.5/model_cache"
+
+python train_lora.py --config modular_config.json
+
+python generate_images.py --config modular_config.json

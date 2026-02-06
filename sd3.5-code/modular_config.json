@@ -1,0 +1,20 @@
+{
+  "experiment": "sd3-lora-acer-test",
+  "model_path": "C:/users/talake2/Desktop/sd3.5/model_cache/stabilityai_stable-diffusion-3.5-large",
+  "train_data_dir": "C:/users/talake2/Desktop/sd3.5/sd-genus-images",
+  "output_path": "C:/users/talake2/Desktop/sd3.5/lora-outputs",
+  "latents_cache_dir": "C:/users/talake2/Desktop/sd3.5/sd-latents-outputs",
+  "selected_genera": ["acer"],
+  "resolution": 512,
+  "train_batch_size": 2,
+  "gradient_accumulation_steps": 2,
+  "epochs": 2,
+  "learning_rate": 1e-4,
+  "mixed_precision": "bf16",
+  "checkpointing_steps": 500,
+  "validation_epochs": 1,
+  "dataloader_num_workers": 0,
+  "use_wandb": false,
+  "enable_xformers": false,
+  "precompute_latents": false
+}

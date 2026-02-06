@@ -1,0 +1,159 @@
+/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+INFO:__main__:Using device: cuda
+INFO:__main__:Loading SD3 models
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294ae2d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 37939c46-df13-43f7-ad61-242eff087386)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294ae2d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 37939c46-df13-43f7-ad61-242eff087386)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+Retrying in 1s [Retry 1/5].
+WARNING:huggingface_hub.utils._http:Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294af0d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: be1e14ca-bd42-4fa2-aef0-e9fba5fc6b5f)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294af0d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: be1e14ca-bd42-4fa2-aef0-e9fba5fc6b5f)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+Retrying in 2s [Retry 2/5].
+WARNING:huggingface_hub.utils._http:Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b9950>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 12860c4f-9904-4f68-a120-f21b702dcf24)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b9950>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 12860c4f-9904-4f68-a120-f21b702dcf24)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+Retrying in 4s [Retry 3/5].
+WARNING:huggingface_hub.utils._http:Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b8d50>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 19071fa1-a969-4bdf-b94e-c2f79bad736a)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b8d50>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 19071fa1-a969-4bdf-b94e-c2f79bad736a)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 4/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294ac8d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: f606baa9-d5a8-4e14-b74e-ff68d73ec782)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294ac8d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: f606baa9-d5a8-4e14-b74e-ff68d73ec782)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+Retrying in 8s [Retry 5/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a4110>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: b65b763e-0159-4b87-b7ac-20b72b91f7ca)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a4110>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: b65b763e-0159-4b87-b7ac-20b72b91f7ca)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/tokenizer_config.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a7610>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 94891349-8baa-44ad-a83a-796004eee0db)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a7610>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 94891349-8baa-44ad-a83a-796004eee0db)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+Retrying in 1s [Retry 1/5].
+WARNING:huggingface_hub.utils._http:Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946c210>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 9f944258-a403-4b87-bff2-1b67afc73e34)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946c210>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 9f944258-a403-4b87-bff2-1b67afc73e34)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+Retrying in 2s [Retry 2/5].
+WARNING:huggingface_hub.utils._http:Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946cf50>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 91de2ef4-781f-4e93-804f-3ffe5e89d4c6)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946cf50>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 91de2ef4-781f-4e93-804f-3ffe5e89d4c6)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+Retrying in 4s [Retry 3/5].
+WARNING:huggingface_hub.utils._http:Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946dcd0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: ab204754-43b4-400f-9b9e-e5c8306a0732)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946dcd0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: ab204754-43b4-400f-9b9e-e5c8306a0732)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+Retrying in 8s [Retry 4/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 4/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946ea10>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: c97c7cc2-1f1f-454a-a633-8107d60f6e8e)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2946ea10>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: c97c7cc2-1f1f-454a-a633-8107d60f6e8e)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+Retrying in 8s [Retry 5/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 5/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a7f50>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: d01f133d-4550-4a2e-ae45-2b1f69af1451)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/vocab.json (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a7f50>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: d01f133d-4550-4a2e-ae45-2b1f69af1451)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a4b10>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: fc4040d9-e360-40c3-8788-dec419e304ef)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294a4b10>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: fc4040d9-e360-40c3-8788-dec419e304ef)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+Retrying in 1s [Retry 1/5].
+WARNING:huggingface_hub.utils._http:Retrying in 1s [Retry 1/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2954cdd0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: fa7fc7bc-b230-4400-9832-a0e549334308)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa2954cdd0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: fa7fc7bc-b230-4400-9832-a0e549334308)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+Retrying in 2s [Retry 2/5].
+WARNING:huggingface_hub.utils._http:Retrying in 2s [Retry 2/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b93d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 76b180c0-d742-4536-aff1-5e56199cd157)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b93d0>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 76b180c0-d742-4536-aff1-5e56199cd157)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+Retrying in 4s [Retry 3/5].
+WARNING:huggingface_hub.utils._http:Retrying in 4s [Retry 3/5].
+'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b8e90>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 8d6fbb4a-b3e9-4ea0-8632-5ce667cd7931)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+WARNING:huggingface_hub.utils._http:'(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /openai/clip-vit-large-patch14/resolve/main/merges.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x14fa294b8e90>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 8d6fbb4a-b3e9-4ea0-8632-5ce667cd7931)')' thrown while requesting HEAD https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/merges.txt
+Retrying in 8s [Retry 4/5].
+WARNING:huggingface_hub.utils._http:Retrying in 8s [Retry 4/5].
+Traceback (most recent call last):
+  File "/home/btfarre2/gsv_host_detector/tree_classification/v3/train_text_to_image_lora.py", line 359, in <module>
+    
+  File "/home/btfarre2/gsv_host_detector/tree_classification/v3/train_text_to_image_lora.py", line 116, in main
+    
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/transformers/tokenization_utils_base.py", line 2060, in from_pretrained
+    resolved_vocab_files[file_id] = cached_file(
+                                    ^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/transformers/utils/hub.py", line 322, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/transformers/utils/hub.py", line 479, in cached_files
+    hf_hub_download(
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1007, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1070, in _hf_hub_download_to_cache_dir
+    (url_to_download, etag, commit_hash, expected_size, xet_file_data, head_call_error) = _get_metadata_or_catch_error(
+                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1543, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 1460, in get_hf_file_metadata
+    r = _request_wrapper(
+        ^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 283, in _request_wrapper
+    response = _request_wrapper(
+               ^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/file_download.py", line 306, in _request_wrapper
+    response = http_backoff(method=method, url=url, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/utils/_http.py", line 306, in http_backoff
+    response = session.request(method=method, url=url, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/huggingface_hub/utils/_http.py", line 95, in send
+    return super().send(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/requests/adapters.py", line 644, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/urllib3/connectionpool.py", line 464, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/urllib3/connectionpool.py", line 1093, in _validate_conn
+    conn.connect()
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/urllib3/connection.py", line 753, in connect
+    self.sock = sock = self._new_conn()
+                       ^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/urllib3/connection.py", line 198, in _new_conn
+    sock = connection.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/btfarre2/gsv_host_detector/tree_classification/v3/__main__.py", line 11, in <module>
+    main()
+  File "/home/btfarre2/gsv_host_detector/tree_classification/v3/train_lora.py", line 223, in main
+    success = train_genus(
+              ^^^^^^^^^^^^
+  File "/home/btfarre2/gsv_host_detector/tree_classification/v3/train_lora.py", line 100, in train_genus
+    subprocess.run(cmd, check=True)
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/subprocess.py", line 1201, in communicate
+    self.wait()
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/subprocess.py", line 2053, in _wait
+    (pid, sts) = self._try_wait(0)
+                 ^^^^^^^^^^^^^^^^^
+  File "/usr/local/usrapps/rkmeente/btfarre2/conda_envs/pytorch/lib/python3.11/subprocess.py", line 2011, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

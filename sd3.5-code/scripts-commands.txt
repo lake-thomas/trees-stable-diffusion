@@ -1,0 +1,5 @@
+python precompute_latents.py --data_dir "C:/Users/talake2/Desktop/sd3.5/sd-genus-images/acer" --output_dir "C:/Users/talake2/Desktop/sd3.5/sd-latents-outputs" --model_cache "C:/Users/talake2/Desktop/sd3.5/model_cache"
+
+python train_lora.py --config modular_config.json
+
+python generate_images.py 
