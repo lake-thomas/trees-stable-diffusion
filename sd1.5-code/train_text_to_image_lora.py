@@ -27,6 +27,8 @@ from diffusers import (
 from transformers import CLIPTokenizer, CLIPTextModel
 from peft import LoraConfig, get_peft_model
 
+from prompt_profiles import get_training_prompt, normalize_dataset_type
+
 # Optional wandb (disabled by default)
 try:
     import wandb
@@ -88,6 +90,12 @@ def parse_args():
     )
 
     parser.add_argument("--report_to", type=str, default="none")
+    parser.add_argument(
+        "--dataset_type",
+        type=str,
+        default="autoarborist",
+        help="Dataset style for prompting: autoarborist/google-street-view or inaturalist field style",
+    )
 
     return parser.parse_args()
 
@@ -296,10 +304,13 @@ def main():
         )
 
     # -------------------------------------------------------------------------
-    # Prompt embedding (single fixed prompt per genus)
+    # Prompt embedding (single fixed prompt per genus, dataset-aware)
     # -------------------------------------------------------------------------
     genus = os.path.basename(args.train_data_dir.rstrip("/"))
-    prompt = f"a street-level Google Street View photograph of a tree, genus {genus}"
+    dataset_type = normalize_dataset_type(args.dataset_type)
+    prompt = get_training_prompt(dataset_type, genus)
+    logger.info(f"Dataset type: {dataset_type}")
+    logger.info(f"Training prompt: {prompt}")
 
     tokens = tokenizer(
         prompt,
