@@ -11,6 +11,12 @@ from pathlib import Path
 from diffusers import StableDiffusionPipeline
 from peft import PeftModel
 
+from prompt_profiles import (
+    get_generation_prompts,
+    get_negative_prompt,
+    normalize_dataset_type,
+)
+
 
 def generate_for_genus(
     genus,
@@ -21,7 +27,8 @@ def generate_for_genus(
     guidance_scale=7.5,
     num_inference_steps=30,
     resolution=512,
-    device="cuda"
+    device="cuda",
+    dataset_type="autoarborist"
 ):
     """
     Generate images for a single genus using its LoRA weights.
@@ -36,6 +43,7 @@ def generate_for_genus(
         num_inference_steps: Number of inference steps
         resolution: Image resolution
         device: Device to use
+        dataset_type: Dataset prompt profile (autoarborist or inaturalist)
     """
     print(f"\n{'='*60}")
     print(f"Generating images for: {genus}")
@@ -61,19 +69,20 @@ def generate_for_genus(
     pipe = pipe.to(device)
     # pipe.enable_xformers_memory_efficient_attention()
 
-    # Generate prompts - Mix of detailed descriptive prompts, realistic contexts, and creative scenarios
-    prompts = [f"A real-world iNaturalist photograph of a tree, genus {genus}, taken outdoors in natural lighting. The image shows diagnostic features, such as leaves, branching structure, bark texture, and if present, flowers or fruit. Unstaged, field photograph, realistic perspective, ecological context."]
-    
-    print(f"Generating {num_images} images...")
-    prompt = prompts[0]
+    dataset_type = normalize_dataset_type(dataset_type)
+    prompts = get_generation_prompts(dataset_type, genus)
+    negative_prompt = get_negative_prompt(dataset_type)
+
+    print(f"Generating {num_images} images with dataset profile: {dataset_type}...")
 
     for idx in range(num_images):
+        prompt = prompts[idx % len(prompts)]
         print(f"  [{idx+1}/{num_images}] {prompt}")
 
         with torch.no_grad():
             image = pipe(
                 prompt,
-                negative_prompt="Illustration, drawing, painting, sketch, cartoon, anime, 3d render, cgi, artificial lighting, studio lighting, product photo, stock photo, extreme close-up, bokeh, fantasy, unreal, surreal, abstract, text, watermark, logo, frame",
+                negative_prompt=negative_prompt,
                 guidance_scale=guidance_scale,
                 num_inference_steps=num_inference_steps,
                 height=resolution,
@@ -112,6 +121,7 @@ def main():
         config = json.load(f)
 
     base_model_id = config.get("model_path", "C:/users/talake2/Desktop/sd1.5/model_cache/sd-legacy_stable-diffusion-v1-5")
+    dataset_type = normalize_dataset_type(config.get("dataset_type", "autoarborist"))
     output_base = config["output_path"]
     genera = config["selected_genera"]
 
@@ -123,6 +133,7 @@ def main():
     print(f"Base model: {base_model_id}")
     print(f"Device: {device}")
     print(f"Genera to process: {len(genera)}")
+    print(f"Dataset type: {dataset_type}")
     print(f"{'='*60}\n")
 
     results = {}
@@ -142,7 +153,8 @@ def main():
             guidance_scale=args.guidance_scale,
             num_inference_steps=args.num_inference_steps,
             resolution=args.resolution,
-            device=device
+            device=device,
+            dataset_type=dataset_type
         )
 
         results[genus] = "success" if success else "failed"
