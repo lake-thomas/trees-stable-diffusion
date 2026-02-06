@@ -121,6 +121,12 @@ def main():
         action="store_true",
         help="Enable xformers memory efficient attention",
     )
+    parser.add_argument(
+        "--dataloader_num_workers",
+        type=int,
+        default=2,
+        help="Number of workers for data loading",
+    )
     
     # Config file
     parser.add_argument(

@@ -82,19 +82,13 @@ def print_model_info(model_version: str):
 
 
 def estimate_training_time(
-    num_images: int,
     max_train_steps: int,
-    batch_size: int,
-    gradient_accumulation_steps: int,
 ) -> str:
     """
-    Estimate training time
+    Estimate training time based on training steps
     
     Args:
-        num_images: Number of training images
         max_train_steps: Maximum training steps
-        batch_size: Batch size
-        gradient_accumulation_steps: Gradient accumulation steps
         
     Returns:
         Estimated time as string

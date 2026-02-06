@@ -40,6 +40,7 @@ class LoRATrainer:
         mixed_precision: str = "fp16",
         seed: int = 42,
         enable_xformers_memory_efficient_attention: bool = False,
+        dataloader_num_workers: int = 2,
     ):
         """
         Initialize the LoRA trainer
@@ -59,10 +60,12 @@ class LoRATrainer:
             mixed_precision: Mixed precision training ("no", "fp16", "bf16")
             seed: Random seed
             enable_xformers_memory_efficient_attention: Use xformers
+            dataloader_num_workers: Number of workers for data loading
         """
         self.model_version = model_version
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.dataloader_num_workers = dataloader_num_workers
         
         # Set default model path if not provided
         if pretrained_model_name_or_path is None:
@@ -167,7 +170,7 @@ class LoRATrainer:
             batch_size=self.train_batch_size,
             shuffle=True,
             collate_fn=collate_fn,
-            num_workers=0,
+            num_workers=self.dataloader_num_workers,
         )
         
     def train(self):
@@ -229,7 +232,8 @@ class LoRATrainer:
                         noisy_latents, timesteps, encoder_hidden_states
                     ).sample
                     
-                    # Calculate loss
+                    # Calculate loss (epsilon/noise prediction for both SD1.5 and SD3.5)
+                    # Note: Both SD1.5 and SD3.5 use epsilon prediction by default
                     loss = torch.nn.functional.mse_loss(
                         model_pred.float(), noise.float(), reduction="mean"
                     )
