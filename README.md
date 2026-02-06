@@ -84,6 +84,22 @@ trees-sd-train \
   --enable_xformers_memory_efficient_attention
 ```
 
+### Evaluate Generated Image Quality
+
+After generating images, compare them against the original iNaturalist/Autoarborist images using post-hoc metrics (including FID):
+
+```bash
+trees-sd-eval \
+  --real_dir /path/to/real_images \
+  --generated_dir /path/to/generated_images \
+  --metrics fid basic \
+  --device cuda \
+  --output_json ./output/eval_metrics.json
+```
+
+- `fid` computes Frechet Inception Distance between real and generated sets.
+- `basic` reports dataset-level sanity stats (count, average resolution, mean RGB).
+
 ## Dataset Formats
 
 ### iNaturalist Format
