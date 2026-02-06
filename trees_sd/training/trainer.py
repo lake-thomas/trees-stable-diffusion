@@ -20,6 +20,11 @@ from accelerate import Accelerator
 from tqdm import tqdm
 import yaml
 
+try:
+    import wandb
+except Exception:
+    wandb = None
+
 
 class LoRATrainer:
     """Trainer for Stable Diffusion models with LoRA"""
@@ -41,6 +46,11 @@ class LoRATrainer:
         seed: int = 42,
         enable_xformers_memory_efficient_attention: bool = False,
         dataloader_num_workers: int = 2,
+        report_to: str = "none",
+        wandb_project: Optional[str] = None,
+        wandb_entity: Optional[str] = None,
+        wandb_run_name: Optional[str] = None,
+        wandb_api_key: Optional[str] = None,
     ):
         """
         Initialize the LoRA trainer
@@ -61,6 +71,11 @@ class LoRATrainer:
             seed: Random seed
             enable_xformers_memory_efficient_attention: Use xformers
             dataloader_num_workers: Number of workers for data loading
+            report_to: Experiment tracker backend ("none" or "wandb")
+            wandb_project: Weights & Biases project name
+            wandb_entity: Weights & Biases user/team entity
+            wandb_run_name: Optional run name for Weights & Biases
+            wandb_api_key: Optional Weights & Biases API key
         """
         self.model_version = model_version
         self.output_dir = Path(output_dir)
@@ -90,17 +105,56 @@ class LoRATrainer:
         self.mixed_precision = mixed_precision
         self.seed = seed
         self.enable_xformers = enable_xformers_memory_efficient_attention
-        
+        self.report_to = report_to
+        self.wandb_project = wandb_project
+        self.wandb_entity = wandb_entity
+        self.wandb_run_name = wandb_run_name
+        self.wandb_api_key = wandb_api_key
+
+        self._configure_tracking_env()
+
         # Initialize accelerator
-        self.accelerator = Accelerator(
-            gradient_accumulation_steps=gradient_accumulation_steps,
-            mixed_precision=mixed_precision,
-        )
+        if self.report_to == "wandb":
+            self.accelerator = Accelerator(
+                gradient_accumulation_steps=gradient_accumulation_steps,
+                mixed_precision=mixed_precision,
+                log_with="wandb",
+                project_dir=str(self.output_dir),
+            )
+        else:
+            self.accelerator = Accelerator(
+                gradient_accumulation_steps=gradient_accumulation_steps,
+                mixed_precision=mixed_precision,
+            )
         
         # Set seed
         if self.seed is not None:
             torch.manual_seed(self.seed)
             
+
+    def _configure_tracking_env(self):
+        """Configure experiment tracking backends."""
+        if self.report_to not in {"none", "wandb"}:
+            raise ValueError(f"Unsupported report_to value: {self.report_to}")
+
+        if self.report_to != "wandb":
+            return
+
+        if wandb is None:
+            raise ImportError("wandb is not installed. Please install wandb to enable tracking.")
+
+        if self.wandb_api_key:
+            os.environ["WANDB_API_KEY"] = self.wandb_api_key
+
+        if self.wandb_project:
+            os.environ["WANDB_PROJECT"] = self.wandb_project
+
+        if self.wandb_entity:
+            os.environ["WANDB_ENTITY"] = self.wandb_entity
+
+        if self.wandb_run_name:
+            os.environ["WANDB_NAME"] = self.wandb_run_name
+
     def load_models(self):
         """Load Stable Diffusion models"""
         print(f"Loading {self.model_version} model from {self.pretrained_model_name_or_path}...")
@@ -194,7 +248,30 @@ class LoRATrainer:
         )
         
         self.unet.train()
-        
+
+        if self.report_to == "wandb":
+            tracker_kwargs = {"wandb": {}}
+            if self.wandb_entity:
+                tracker_kwargs["wandb"]["entity"] = self.wandb_entity
+            if self.wandb_run_name:
+                tracker_kwargs["wandb"]["name"] = self.wandb_run_name
+
+            run_name = self.wandb_run_name or f"trees-sd-{self.model_version}"
+            self.accelerator.init_trackers(
+                project_name=self.wandb_project or "trees-stable-diffusion",
+                config={
+                    "model_version": self.model_version,
+                    "lora_rank": self.lora_rank,
+                    "lora_alpha": self.lora_alpha,
+                    "learning_rate": self.learning_rate,
+                    "train_batch_size": self.train_batch_size,
+                    "gradient_accumulation_steps": self.gradient_accumulation_steps,
+                    "max_train_steps": self.max_train_steps,
+                },
+                init_kwargs=tracker_kwargs if tracker_kwargs["wandb"] else None,
+            )
+            self.accelerator.print(f"Initialized W&B tracking with run name: {run_name}")
+
         while global_step < self.max_train_steps:
             for batch in self.train_dataloader:
                 with self.accelerator.accumulate(self.unet):
@@ -247,8 +324,10 @@ class LoRATrainer:
                     global_step += 1
                     progress_bar.update(1)
                     
-                    logs = {"loss": loss.detach().item()}
-                    progress_bar.set_postfix(**logs)
+                    logs = {"loss": loss.detach().item(), "step": global_step}
+                    progress_bar.set_postfix(loss=logs["loss"])
+                    if self.report_to == "wandb":
+                        self.accelerator.log(logs, step=global_step)
                     
                     # Save checkpoint
                     if global_step % self.save_steps == 0:
@@ -259,6 +338,9 @@ class LoRATrainer:
                     
         # Save final checkpoint
         self.save_checkpoint(global_step)
+
+        if self.report_to == "wandb":
+            self.accelerator.end_training()
         
     def save_checkpoint(self, step):
         """Save model checkpoint"""
