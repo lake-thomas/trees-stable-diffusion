@@ -127,6 +127,37 @@ def main():
         default=2,
         help="Number of workers for data loading",
     )
+    parser.add_argument(
+        "--report_to",
+        type=str,
+        choices=["none", "wandb"],
+        default="none",
+        help="Experiment tracker backend",
+    )
+    parser.add_argument(
+        "--wandb_project",
+        type=str,
+        default=None,
+        help="Weights & Biases project name",
+    )
+    parser.add_argument(
+        "--wandb_entity",
+        type=str,
+        default=None,
+        help="Weights & Biases team/user entity",
+    )
+    parser.add_argument(
+        "--wandb_run_name",
+        type=str,
+        default=None,
+        help="Weights & Biases run name",
+    )
+    parser.add_argument(
+        "--wandb_api_key",
+        type=str,
+        default=None,
+        help="Weights & Biases API key (or set WANDB_API_KEY env var)",
+    )
     
     # Config file
     parser.add_argument(

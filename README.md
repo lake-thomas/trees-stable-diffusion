@@ -67,6 +67,30 @@ trees-sd-train \
 
 Full control over training hyperparameters:
 
+### Weights & Biases (W&B) Tracking
+
+To log training runs to your W&B account, either export your API key:
+
+```bash
+export WANDB_API_KEY=your_api_key
+```
+
+or pass it directly at runtime, then enable W&B reporting:
+
+```bash
+trees-sd-train \
+  --data_dir /path/to/data \
+  --dataset_type inaturalist \
+  --model_version sd1.5 \
+  --output_dir ./output \
+  --report_to wandb \
+  --wandb_project trees-sd \
+  --wandb_entity your_wandb_username_or_team \
+  --wandb_run_name sd15-inat-exp1
+```
+
+Optional: provide `--wandb_api_key` if you prefer not to export `WANDB_API_KEY`.
+
 ```bash
 trees-sd-train \
   --data_dir /path/to/data \
@@ -216,6 +240,11 @@ trainer = train_model(
 | `--save_steps` | Save checkpoint every N steps | 500 |
 | `--mixed_precision` | Mixed precision (no/fp16/bf16) | fp16 |
 | `--seed` | Random seed | 42 |
+| `--report_to` | Experiment tracker backend (`none`/`wandb`) | none |
+| `--wandb_project` | W&B project name | None |
+| `--wandb_entity` | W&B user/team entity | None |
+| `--wandb_run_name` | W&B run name | None |
+| `--wandb_api_key` | W&B API key (or use `WANDB_API_KEY`) | None |
 
 ## Tips for Training
 
