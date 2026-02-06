@@ -1,0 +1,22 @@
+# Example configuration for SD1.5 training on iNaturalist data
+
+# Model settings
+model_version: sd1.5
+pretrained_model_name_or_path: runwayml/stable-diffusion-v1-5
+
+# LoRA settings
+lora_rank: 4
+lora_alpha: 32
+lora_dropout: 0.1
+
+# Training settings
+learning_rate: 1e-4
+train_batch_size: 1
+gradient_accumulation_steps: 4
+max_train_steps: 1000
+save_steps: 500
+
+# Optimization
+mixed_precision: fp16
+seed: 42
+enable_xformers_memory_efficient_attention: false
