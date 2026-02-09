@@ -27,6 +27,23 @@ pip install -e .
 
 ## Quick Start
 
+### Model & Dataset Preparation
+
+Download both SD1.5 and SD3.5 model assets into a shared cache:
+
+```bash
+python download_models.py --cache_dir ./model_cache
+```
+
+Prepare genus-level splits for iNaturalist and Autoarborist datasets:
+
+```bash
+python make_genus_splits.py \
+  --inat_root /path/to/inaturalist \
+  --aa_root /path/to/autoarborist \
+  --output_root ./sd-genus-images
+```
+
 ### Basic Usage
 
 Train SD1.5 on iNaturalist data:
@@ -280,6 +297,12 @@ Example configurations are provided in `trees_sd/configs/`:
 - `sd15_inaturalist.yaml` - SD1.5 with iNaturalist data
 - `sd35_inaturalist.yaml` - SD3.5 with iNaturalist data
 - `sd15_autoarborist.yaml` - SD1.5 with Autoarborist data
+
+## Legacy Modular Scripts
+
+The consolidated scripts from the previous SD1.5/SD3.5 folders now live in `sd-code/`.
+Use the unified entrypoints with `--model_version` and the example configs:
+`modular_config_sd15.json` or `modular_config_sd35.json`.
 
 ## License
 

@@ -101,5 +101,19 @@ def test_example_scripts_exist():
     assert (examples_dir / "compare_models.py").exists()
 
 
+def test_unified_script_layout():
+    """Test that unified scripts and consolidated folder exist"""
+    repo_root = Path(__file__).parent.parent
+    sd_code_dir = repo_root / "sd-code"
+
+    assert (repo_root / "download_models.py").exists()
+    assert (repo_root / "make_genus_splits.py").exists()
+    assert sd_code_dir.exists()
+    assert (sd_code_dir / "generate_images.py").exists()
+    assert (sd_code_dir / "train_lora.py").exists()
+    assert not (repo_root / "sd1.5-code").exists()
+    assert not (repo_root / "sd3.5-code").exists()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -4,30 +4,32 @@ A modular LoRA fine-tuning pipeline for Stable Diffusion with precomputed latent
 
 ## Core Scripts
 
-- **train_lora.py** - Main orchestrator for training multiple LoRA models
-- **train_text_to_image_lora.py** - Core training script with latent caching
-- **precompute_latents.py** - Precompute and cache image latents for faster training
-- **generate_images.py** - Generate images using trained LoRA models
-- **download_models.py** - Download Stable Diffusion models for offline use
+- **train_lora.py** - Main orchestrator for training multiple LoRA models (`--model_version` selects SD1.5/SD3.5)
+- **train_text_to_image_lora.py** - Core training script with latent caching (`--model_version` selects SD1.5/SD3.5)
+- **precompute_latents.py** - Precompute and cache image latents for faster training (`--model_version` selects SD1.5/SD3.5)
+- **generate_images.py** - Generate images using trained LoRA models (`--model_version` selects SD1.5/SD3.5)
+- **../download_models.py** - Download Stable Diffusion models for offline use
 
 ## Quick Start
 
 ### 1. Precompute Latents
 ```bash
 python precompute_latents.py \
-    --model_path /path/to/model \
-    --train_data_dir /path/to/dataset \
+    --model_version sd1.5 \
+    --data_dir /path/to/dataset \
     --output_dir /path/to/latents \
+    --model_cache /path/to/model_cache \
     --resolution 512
 ```
 
 ### 2. Configure Training
-Edit `modular_config.json` with your settings:
+Edit `modular_config_sd15.json` or `modular_config_sd35.json` with your settings:
 ```json
 {
+    "model_version": "sd1.5",
     "model_path": "/path/to/model",
     "train_data_dir": "/path/to/dataset",
-    "latent_cache_dir": "/path/to/latents",
+    "latents_cache_dir": "/path/to/latents",
     "output_dir": "/path/to/outputs",
     "epochs": 10,
     "learning_rate": 1e-4
@@ -36,15 +38,14 @@ Edit `modular_config.json` with your settings:
 
 ### 3. Train
 ```bash
-python train_lora.py --config modular_config.json
+python train_lora.py --model_version sd1.5 --config modular_config_sd15.json
 ```
 
 ### 4. Generate
 ```bash
 python generate_images.py \
-    --model_path /path/to/model \
-    --lora_path /path/to/trained/lora \
-    --prompt "your prompt" \
+    --model_version sd1.5 \
+    --config modular_config_sd15.json \
     --num_images 4
 ```
 
