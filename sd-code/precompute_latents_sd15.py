@@ -72,7 +72,7 @@ def precompute_latents(
         sd15_path,
         subfolder="vae",
         torch_dtype=weight_dtype,
-        local_files_only=False
+        local_files_only=True
     )
 
     vae.to(device)

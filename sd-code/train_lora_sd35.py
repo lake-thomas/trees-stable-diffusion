@@ -240,7 +240,7 @@ def main():
         print(f"{'='*60}\n")
 
         for genus in genera:
-            genus_data_dir = os.path.join(train_base, genus)
+            genus_data_dir = os.path.join(train_base, genus, "lora")
             genus_latents_dir = os.path.join(latents_cache_dir, genus)
 
             # Skip if already computed
@@ -270,7 +270,7 @@ def main():
     # Train each genus
     results = {}
     for genus in genera:
-        train_data_dir = os.path.join(train_base, genus)
+        train_data_dir = os.path.join(train_base, genus, "lora")
         output_dir = os.path.join(output_base, f"lora-{genus}")
 
         # Check for pre-computed latents
