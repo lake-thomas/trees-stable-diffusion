@@ -65,9 +65,6 @@ def train_genus(
 
     os.makedirs(output_dir, exist_ok=True)
     
-    # Prompt inspired by: https://www.inaturalist.org/guide_taxa/355708
-    # validation_prompt = f"A photo of a tree, genus {genus}, closeup of the leaves, and the whole plant if possible, fruit or flowers if there are any, for trees, close-up of bark is also helpful."
-
     dataset_type = normalize_dataset_type(dataset_type)
 
     # Build command - run training script directly with python
