@@ -103,6 +103,7 @@ def test_example_scripts_exist():
     assert (examples_dir / "train_sd15_inaturalist.py").exists()
     assert (examples_dir / "train_sd35_autoarborist.py").exists()
     assert (examples_dir / "compare_models.py").exists()
+    assert (examples_dir / "train_sdxl_refiner.py").exists()
 
 
 def test_unified_script_layout():
