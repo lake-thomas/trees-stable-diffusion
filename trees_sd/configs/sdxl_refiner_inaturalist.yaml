@@ -1,0 +1,26 @@
+# Example configuration for SDXL Refiner training on iNaturalist data
+
+# Model settings
+model_version: sdxl-refiner
+pretrained_model_name_or_path: stabilityai/stable-diffusion-xl-refiner-1.0
+
+# LoRA settings
+lora_rank: 8
+lora_alpha: 64
+lora_dropout: 0.1
+
+# Training settings
+learning_rate: 5e-5
+train_batch_size: 1
+gradient_accumulation_steps: 4
+max_train_steps: 1000
+save_steps: 500
+
+# Refiner settings
+refiner_strength: 0.3
+use_refiner: true
+
+# Optimization
+mixed_precision: fp16
+seed: 42
+enable_xformers_memory_efficient_attention: false

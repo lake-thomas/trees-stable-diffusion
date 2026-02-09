@@ -33,7 +33,7 @@ def main():
     parser.add_argument(
         "--model_version",
         type=str,
-        choices=["sd1.5", "sd3.5"],
+        choices=["sd1.5", "sd3.5", "sdxl-refiner"],
         default="sd1.5",
         help="Stable Diffusion version to use",
     )
@@ -157,6 +157,19 @@ def main():
         type=str,
         default=None,
         help="Weights & Biases API key (or set WANDB_API_KEY env var)",
+    )
+    
+    # Refiner-specific arguments
+    parser.add_argument(
+        "--refiner_strength",
+        type=float,
+        default=0.3,
+        help="Strength of refinement for SDXL refiner (0.0-1.0)",
+    )
+    parser.add_argument(
+        "--use_refiner",
+        action="store_true",
+        help="Enable SDXL refiner for image refinement",
     )
     
     # Config file

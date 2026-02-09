@@ -22,6 +22,7 @@ class TreeDataset(Dataset):
         image_column: str = "image",
         max_size: int = 512,
         tokenizer=None,
+        tokenizer_2=None,
     ):
         """
         Args:
@@ -31,6 +32,7 @@ class TreeDataset(Dataset):
             image_column: Column name for images
             max_size: Maximum image size
             tokenizer: Tokenizer for text encoding
+            tokenizer_2: Second tokenizer for SDXL models (optional)
         """
         self.data_dir = Path(data_dir)
         self.dataset_type = dataset_type.lower()
@@ -38,6 +40,7 @@ class TreeDataset(Dataset):
         self.image_column = image_column
         self.max_size = max_size
         self.tokenizer = tokenizer
+        self.tokenizer_2 = tokenizer_2
         
         self.data = self._load_data()
         
@@ -142,6 +145,16 @@ class TreeDataset(Dataset):
                 return_tensors="pt"
             ).input_ids[0]
         
+        # Tokenize with second tokenizer for SDXL models
+        if self.tokenizer_2 is not None:
+            result['input_ids_2'] = self.tokenizer_2(
+                item['caption'],
+                padding="max_length",
+                truncation=True,
+                max_length=77,
+                return_tensors="pt"
+            ).input_ids[0]
+        
         return result
 
 
@@ -150,6 +163,7 @@ def create_dataset(
     dataset_type: str = "inaturalist",
     max_size: int = 512,
     tokenizer=None,
+    tokenizer_2=None,
 ) -> TreeDataset:
     """
     Factory function to create a tree dataset
@@ -159,6 +173,7 @@ def create_dataset(
         dataset_type: Either 'inaturalist' or 'autoarborist'
         max_size: Maximum image size
         tokenizer: Tokenizer for text encoding
+        tokenizer_2: Second tokenizer for SDXL models (optional)
         
     Returns:
         TreeDataset instance
@@ -168,4 +183,5 @@ def create_dataset(
         dataset_type=dataset_type,
         max_size=max_size,
         tokenizer=tokenizer,
+        tokenizer_2=tokenizer_2,
     )

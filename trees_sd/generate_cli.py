@@ -13,12 +13,13 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--config", required=True, help="Path to config JSON")
-    parser.add_argument("--model_version", choices=["sd1.5", "sd3.5"], default=None)
+    parser.add_argument("--model_version", choices=["sd1.5", "sd3.5", "sdxl-refiner"], default=None)
     parser.add_argument("--dataset_type", choices=["inaturalist", "autoarborist"], default=None)
     parser.add_argument("--num_images", type=int, default=12)
     parser.add_argument("--guidance_scale", type=float, default=7.0)
     parser.add_argument("--num_inference_steps", type=int, default=28)
     parser.add_argument("--resolution", type=int, default=512)
+    parser.add_argument("--refiner_strength", type=float, default=0.3, help="Strength for SDXL refiner (0.0-1.0)")
 
     args = parser.parse_args()
 
@@ -31,6 +32,7 @@ def main():
             resolution=args.resolution,
             model_version=args.model_version,
             dataset_type=args.dataset_type,
+            refiner_strength=args.refiner_strength,
         )
     except Exception as exc:
         print(f"Generation failed: {exc}", file=sys.stderr)
