@@ -120,7 +120,11 @@ def main():
     with open(args.config, 'r') as f:
         config = json.load(f)
 
-    base_model_id = config.get("model_path", "C:/users/talake2/Desktop/sd1.5/model_cache/sd-legacy_stable-diffusion-v1-5")
+    default_cache = os.environ.get("MODEL_CACHE", "./model_cache")
+    base_model_id = config.get(
+        "model_path",
+        os.path.join(default_cache, "sd-legacy_stable-diffusion-v1-5"),
+    )
     dataset_type = normalize_dataset_type(config.get("dataset_type", "autoarborist"))
     output_base = config["output_path"]
     genera = config["selected_genera"]

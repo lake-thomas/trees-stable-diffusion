@@ -218,7 +218,7 @@ def main():
     # Latent caching options
     do_precompute_latents = config.get("precompute_latents", False)
     latents_cache_dir = config.get("latents_cache_dir", None)
-    model_cache = os.environ.get("MODEL_CACHE", r"C:\Users\talake2\Desktop\sd3.5\model_cache")
+    model_cache = os.environ.get("MODEL_CACHE", "./model_cache")
 
     print(f"\n{'='*60}")
     print(f"TRAINING CONFIGURATION")

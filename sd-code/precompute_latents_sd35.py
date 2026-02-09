@@ -178,7 +178,7 @@ def main():
     parser.add_argument("--output_dir", type=str, required=True,
                         help="Directory to save latents")
     parser.add_argument("--model_cache", type=str,
-                        default="/share/rkmeente/btfarre2/model/model_cache",
+                        default="./model_cache",
                         help="Path to model cache")
     parser.add_argument("--resolution", type=int, default=1024)
     parser.add_argument("--batch_size", type=int, default=8,
