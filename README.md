@@ -350,7 +350,6 @@ Example configurations are provided in `trees_sd/configs/`:
 - `sd35_inaturalist.yaml` - SD3.5 with iNaturalist data
 - `sd15_autoarborist.yaml` - SD1.5 with Autoarborist data
 - `sdxl_refiner_inaturalist.yaml` - SDXL Refiner with iNaturalist data
-- `sd15_autoarborist.yaml` - SD1.5 with Autoarborist data
 
 ## Legacy Modular Scripts
 

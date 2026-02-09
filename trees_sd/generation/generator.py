@@ -98,15 +98,18 @@ class ImageGenerator:
             prompt = prompts[idx % len(prompts)]
             with torch.no_grad():
                 if self.model_version == "sdxl-refiner":
-                    # For SDXL refiner, we need to generate a base image first or use img2img
-                    # For now, we'll use a simple noise-to-image approach
-                    # In production, you'd typically use a base SDXL model first, then refine
+                    # SDXL Refiner is designed for img2img refinement
+                    # Ideally, you would first generate a base image with SDXL base model
+                    # then refine it with this refiner. For standalone use, we create
+                    # a neutral gray base image that the refiner can work with.
                     from PIL import Image
                     import numpy as np
                     
-                    # Create a simple base image (normally from a base SDXL model)
+                    # Create a neutral gray base image (RGB midpoint)
+                    # This gives the refiner something reasonable to start from
+                    # For best results, use a base SDXL model to generate initial images
                     base_image = Image.fromarray(
-                        np.random.randint(0, 255, (resolution, resolution, 3), dtype=np.uint8)
+                        np.full((resolution, resolution, 3), 128, dtype=np.uint8)
                     )
                     
                     image = pipe(
@@ -115,7 +118,7 @@ class ImageGenerator:
                         negative_prompt=negative_prompt,
                         guidance_scale=guidance_scale,
                         num_inference_steps=num_inference_steps,
-                        strength=refiner_strength,
+                        strength=refiner_strength,  # Higher strength means more deviation from base
                     ).images[0]
                 else:
                     image = pipe(
