@@ -66,7 +66,7 @@ def generate_for_genus(
         prompts = [str(template).format(genus=genus) for template in prompt_templates]
     else:
         prompts = [
-            f\"A real-world iNaturalist photograph of a tree, genus {genus}, taken outdoors in natural lighting. The image shows diagnostic features, such as leaves, branching structure, bark texture, and if present, flowers or fruit. Unstaged, field photograph, realistic perspective, ecological context.\"
+            f"A real-world iNaturalist photograph of a tree, genus {genus}, taken outdoors in natural lighting. The image shows diagnostic features, such as leaves, branching structure, bark texture, and if present, flowers or fruit. Unstaged, field photograph, realistic perspective, ecological context."
         ]
 
     print(f"Generating {num_images} images...")

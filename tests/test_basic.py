@@ -114,6 +114,16 @@ def test_unified_script_layout():
     assert not (repo_root / "sd1.5-code").exists()
     assert not (repo_root / "sd3.5-code").exists()
 
+    wrapper_files = [
+        "generate_images.py",
+        "precompute_latents.py",
+        "train_lora.py",
+        "train_text_to_image_lora.py",
+    ]
+    for wrapper in wrapper_files:
+        content = (sd_code_dir / wrapper).read_text(encoding="utf-8")
+        assert "--model_version" in content
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
