@@ -15,6 +15,9 @@ def __getattr__(name):
     elif name == "create_dataset":
         from trees_sd.datasets.loader import create_dataset
         return create_dataset
+    elif name == "generate_images_from_config":
+        from trees_sd.generation.generator import generate_images_from_config
+        return generate_images_from_config
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
-__all__ = ["train_model", "create_dataset"]
+__all__ = ["train_model", "create_dataset", "generate_images_from_config"]
