@@ -68,6 +68,20 @@ trees-sd-train \
   --max_train_steps 2000
 ```
 
+Train SDXL Refiner on iNaturalist data:
+
+```bash
+trees-sd-train \
+  --data_dir /path/to/inaturalist/data \
+  --dataset_type inaturalist \
+  --model_version sdxl-refiner \
+  --output_dir ./output/sdxl_refiner_inaturalist \
+  --lora_rank 8 \
+  --lora_alpha 64 \
+  --learning_rate 5e-5 \
+  --max_train_steps 1000
+```
+
 ### Using Configuration Files
 
 Use pre-configured settings:
@@ -265,13 +279,23 @@ print(results)
   - Learning rate: 5e-5
   - Mixed precision: bf16
 
+### SDXL Refiner (Stable Diffusion XL Refiner 1.0)
+- **Default Model**: `stabilityai/stable-diffusion-xl-refiner-1.0`
+- **Best For**: Image refinement, enhancing details in tree images
+- **Type**: sdEdit model (image-to-image refinement)
+- **Recommended Settings**:
+  - LoRA rank: 8
+  - Learning rate: 5e-5
+  - Mixed precision: fp16
+  - Refiner strength: 0.3
+
 ## Configuration Options
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--data_dir` | Directory containing training data | Required |
 | `--dataset_type` | Dataset type (inaturalist/autoarborist) | inaturalist |
-| `--model_version` | SD version (sd1.5/sd3.5) | sd1.5 |
+| `--model_version` | SD version (sd1.5/sd3.5/sdxl-refiner) | sd1.5 |
 | `--output_dir` | Output directory for checkpoints | ./output |
 | `--lora_rank` | Rank of LoRA adaptation | 4 |
 | `--lora_alpha` | Alpha parameter for LoRA | 32 |
@@ -288,6 +312,8 @@ print(results)
 | `--wandb_entity` | W&B user/team entity | None |
 | `--wandb_run_name` | W&B run name | None |
 | `--wandb_api_key` | W&B API key (or use `WANDB_API_KEY`) | None |
+| `--refiner_strength` | Strength of refinement for SDXL refiner (0.0-1.0) | 0.3 |
+| `--use_refiner` | Enable SDXL refiner for image refinement | False |
 
 ## Tips for Training
 
@@ -322,6 +348,8 @@ print(results)
 Example configurations are provided in `trees_sd/configs/`:
 - `sd15_inaturalist.yaml` - SD1.5 with iNaturalist data
 - `sd35_inaturalist.yaml` - SD3.5 with iNaturalist data
+- `sd15_autoarborist.yaml` - SD1.5 with Autoarborist data
+- `sdxl_refiner_inaturalist.yaml` - SDXL Refiner with iNaturalist data
 - `sd15_autoarborist.yaml` - SD1.5 with Autoarborist data
 
 ## Legacy Modular Scripts
