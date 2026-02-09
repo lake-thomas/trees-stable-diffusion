@@ -17,6 +17,7 @@ def generate_for_genus(
     lora_path,
     base_model_id,
     output_dir,
+    prompt_templates=None,
     num_images=12,
     guidance_scale=7.5,
     num_inference_steps=30,
@@ -32,6 +33,7 @@ def generate_for_genus(
         base_model_id: Base model ID or path
         output_dir: Output directory for generated images
         num_images: Number of images to generate
+        prompt_templates: Optional list of prompt templates (supports {genus})
         guidance_scale: Guidance scale for generation
         num_inference_steps: Number of inference steps
         resolution: Image resolution
@@ -60,14 +62,17 @@ def generate_for_genus(
 
     pipe = pipe.to(device)
 
-    # Generate prompts - Mix of detailed descriptive prompts, realistic contexts, and creative scenarios
-    # prompts = [f"A real-world iNaturalist photograph of a tree, genus {genus}, taken outdoors in natural lighting. The image shows diagnostic features, such as leaves, branching structure, bark texture, and if present, flowers or fruit. Unstaged, field photograph, realistic perspective, ecological context."]
-    prompts = [f"A real-world iNaturalist photograph of a tree, genus {genus}, taken outdoors in natural lighting. The image shows disease symptoms on leaves, like wilt, dieback, or leaf scorch. Spotted lanternfly insect has infested the tree."]
-    # Generate images
+    if prompt_templates:
+        prompts = [str(template).format(genus=genus) for template in prompt_templates]
+    else:
+        prompts = [
+            f\"A real-world iNaturalist photograph of a tree, genus {genus}, taken outdoors in natural lighting. The image shows diagnostic features, such as leaves, branching structure, bark texture, and if present, flowers or fruit. Unstaged, field photograph, realistic perspective, ecological context.\"
+        ]
+
     print(f"Generating {num_images} images...")
-    prompt = prompts[0]
 
     for idx in range(num_images):
+        prompt = prompts[idx % len(prompts)]
         print(f"  [{idx+1}/{num_images}] {prompt}")
 
         with torch.no_grad():
@@ -114,6 +119,9 @@ def main():
     base_model_id = config.get("model_path", "stabilityai/stable-diffusion-3-medium-diffusers")
     output_base = config["output_path"]
     genera = config["selected_genera"]
+    prompt_templates = config.get("prompts")
+    if isinstance(prompt_templates, str):
+        prompt_templates = [prompt_templates]
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -138,6 +146,7 @@ def main():
             lora_path=lora_path,
             base_model_id=base_model_id,
             output_dir=output_dir,
+            prompt_templates=prompt_templates,
             num_images=args.num_images,
             guidance_scale=args.guidance_scale,
             num_inference_steps=args.num_inference_steps,
