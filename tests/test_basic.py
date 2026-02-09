@@ -111,6 +111,8 @@ def test_unified_script_layout():
     assert sd_code_dir.exists()
     assert (sd_code_dir / "generate_images.py").exists()
     assert (sd_code_dir / "train_lora.py").exists()
+    assert (sd_code_dir / "train_text_to_image_lora_sd15.py").exists()
+    assert (sd_code_dir / "train_text_to_image_lora_sd35.py").exists()
     assert not (repo_root / "sd1.5-code").exists()
     assert not (repo_root / "sd3.5-code").exists()
 

@@ -216,7 +216,7 @@ def main():
         low_cpu_mem_usage=True
     )
 
-        # Noise Scheduler: continuous flow matching
+    # Noise Scheduler: continuous flow matching
     noise_scheduler = FlowMatchEulerDiscreteScheduler.from_pretrained(
         sd3_path,
         subfolder="scheduler",
