@@ -38,6 +38,7 @@ dev = [
 [project.scripts]
 trees-sd-train = "trees_sd.cli:main"
 trees-sd-eval = "trees_sd.evaluate_cli:main"
+trees-sd-generate = "trees_sd.generate_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

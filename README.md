@@ -125,6 +125,23 @@ trees-sd-train \
   --enable_xformers_memory_efficient_attention
 ```
 
+
+### Generate Images from Trained LoRA Checkpoints
+
+Use the unified generation module/CLI for either dataset domain (`inaturalist`, `autoarborist`) and either model family (`sd1.5`, `sd3.5`):
+
+```bash
+trees-sd-generate \
+  --config /path/to/train_config.json \
+  --model_version sd3.5 \
+  --dataset_type autoarborist \
+  --num_images 12 \
+  --resolution 1024
+```
+
+The CLI reads `selected_genera` and `output_path` from the config and writes generated images to:
+`<output_path>/tree_gen/lora-<genus>/generated_images/`.
+
 ### Evaluate Generated Image Quality
 
 After generating images, compare them against the original iNaturalist/Autoarborist images using post-hoc metrics (including FID):
@@ -206,7 +223,7 @@ If metadata/annotations files are not present, the package will scan for images 
 You can also use the package programmatically:
 
 ```python
-from trees_sd import train_model
+from trees_sd import train_model, generate_images_from_config
 
 # Train a model
 trainer = train_model(
@@ -219,6 +236,15 @@ trainer = train_model(
     learning_rate=1e-4,
     max_train_steps=1000,
 )
+
+# Generate images from a config JSON
+results = generate_images_from_config(
+    config_path="./output/train_config.json",
+    model_version="sd1.5",
+    dataset_type="inaturalist",
+    num_images=8,
+)
+print(results)
 ```
 
 ## Model Versions

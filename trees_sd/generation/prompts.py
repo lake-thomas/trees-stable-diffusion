@@ -1,10 +1,8 @@
-"""Dataset-specific prompt templates for SD1.5 training and generation."""
+"""Prompt utilities for dataset-aware image generation."""
 
 from typing import List
 
-
 SUPPORTED_DATASETS = {"autoarborist", "inaturalist"}
-
 
 ALIASES = {
     "aa": "autoarborist",
@@ -17,7 +15,7 @@ ALIASES = {
 
 
 def normalize_dataset_type(dataset_type: str) -> str:
-    """Normalize dataset names/aliases to canonical values."""
+    """Normalize dataset aliases to canonical dataset names."""
     if dataset_type is None:
         return "autoarborist"
 
@@ -30,26 +28,8 @@ def normalize_dataset_type(dataset_type: str) -> str:
     return normalized
 
 
-def get_training_prompt(dataset_type: str, genus: str) -> str:
-    """Return a single training prompt aligned to the dataset image style."""
-    dataset_type = normalize_dataset_type(dataset_type)
-
-    if dataset_type == "inaturalist":
-        return (
-            f"a real-world iNaturalist field photograph of a tree, genus {genus}, "
-            "outdoors in natural light with diagnostic botanical features visible "
-            "such as leaves, branching structure, bark, flowers, or fruit"
-        )
-
-    return (
-        f"a street-level Google Street View style photograph of a tree, genus {genus}, "
-        "seen in an urban or suburban roadside context with sidewalk, street, "
-        "or nearby buildings"
-    )
-
-
 def get_generation_prompts(dataset_type: str, genus: str) -> List[str]:
-    """Return diverse generation prompts aligned to the dataset domain."""
+    """Get generation prompt templates aligned to dataset domain."""
     dataset_type = normalize_dataset_type(dataset_type)
 
     if dataset_type == "inaturalist":
@@ -88,7 +68,7 @@ def get_generation_prompts(dataset_type: str, genus: str) -> List[str]:
 
 
 def get_negative_prompt(dataset_type: str) -> str:
-    """Negative prompts to keep output photorealistic and dataset-consistent."""
+    """Negative prompt shared across dataset types for photorealism."""
     _ = normalize_dataset_type(dataset_type)
     return (
         "Illustration, drawing, painting, sketch, cartoon, anime, 3d render, cgi, "

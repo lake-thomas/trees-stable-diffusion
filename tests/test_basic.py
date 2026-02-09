@@ -102,29 +102,17 @@ def test_example_scripts_exist():
 
 
 def test_unified_script_layout():
-    """Test that unified scripts and consolidated folder exist"""
+    """Test that generation moved into package and legacy folder removed"""
     repo_root = Path(__file__).parent.parent
-    sd_code_dir = repo_root / "sd-code"
 
     assert (repo_root / "download_models.py").exists()
     assert (repo_root / "make_genus_splits.py").exists()
-    assert sd_code_dir.exists()
-    assert (sd_code_dir / "generate_images.py").exists()
-    assert (sd_code_dir / "train_lora.py").exists()
-    assert (sd_code_dir / "train_text_to_image_lora_sd15.py").exists()
-    assert (sd_code_dir / "train_text_to_image_lora_sd35.py").exists()
+    assert (repo_root / "trees_sd" / "generation" / "generator.py").exists()
+    assert (repo_root / "trees_sd" / "generation" / "prompts.py").exists()
+    assert (repo_root / "trees_sd" / "generate_cli.py").exists()
+    assert not (repo_root / "sd-code").exists()
     assert not (repo_root / "sd1.5-code").exists()
     assert not (repo_root / "sd3.5-code").exists()
-
-    wrapper_files = [
-        "generate_images.py",
-        "precompute_latents.py",
-        "train_lora.py",
-        "train_text_to_image_lora.py",
-    ]
-    for wrapper in wrapper_files:
-        content = (sd_code_dir / wrapper).read_text(encoding="utf-8")
-        assert "--model_version" in content
 
 
 if __name__ == "__main__":
