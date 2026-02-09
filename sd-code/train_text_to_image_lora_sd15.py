@@ -27,7 +27,10 @@ from diffusers import (
 from transformers import CLIPTokenizer, CLIPTextModel
 from peft import LoraConfig, get_peft_model
 
-from prompt_profiles import get_training_prompt, normalize_dataset_type
+try:
+    from .prompt_profiles import get_training_prompt, normalize_dataset_type
+except ImportError:
+    from prompt_profiles import get_training_prompt, normalize_dataset_type
 
 # Optional wandb (disabled by default)
 try:

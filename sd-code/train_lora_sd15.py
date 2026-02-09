@@ -9,10 +9,14 @@ import json
 import argparse
 import subprocess
 import torch
-from diffusers import StableDiffusion3Pipeline
 from peft import PeftModel
 
-from precompute_latents import precompute_latents
+from precompute_latents_sd15 import precompute_latents
+from prompt_profiles import (
+    get_generation_prompts,
+    get_negative_prompt,
+    normalize_dataset_type,
+)
 
 
 def train_genus(
@@ -29,7 +33,8 @@ def train_genus(
     checkpointing_steps=500,
     validation_epochs=1,
     use_wandb=False,
-    latents_dir=None
+    latents_dir=None,
+    dataset_type="autoarborist"
 ):
     """
     Train LoRA for a single genus.
@@ -48,6 +53,7 @@ def train_genus(
         checkpointing_steps: Save checkpoint every N steps
         validation_epochs: Run validation every N epochs
         use_wandb: Whether to use wandb logging
+        dataset_type: Dataset prompt profile (autoarborist or inaturalist)
     """
     print(f"\n{'='*60}")
     print(f"TRAINING LORA FOR: {genus}")
@@ -59,13 +65,12 @@ def train_genus(
 
     os.makedirs(output_dir, exist_ok=True)
     
-    # Prompt inspired by: https://www.inaturalist.org/guide_taxa/355708
-    validation_prompt = f"A photo of a tree, genus {genus}, closeup of the leaves, and the whole plant if possible, fruit or flowers if there are any, for trees, close-up of bark is also helpful."
+    dataset_type = normalize_dataset_type(dataset_type)
 
     # Build command - run training script directly with python
     import sys
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    train_script = os.path.join(script_dir, "train_text_to_image_lora.py")
+    train_script = os.path.join(script_dir, "train_text_to_image_lora_sd15.py")
 
     # run command with python
     cmd = [
@@ -85,11 +90,10 @@ def train_genus(
         "--lr_warmup_steps=0",
         "--seed=1337",
         f"--output_dir={output_dir}",
-        f"--validation_prompt={validation_prompt}",
-        f"--validation_epochs={validation_epochs}",
         f"--checkpointing_steps={checkpointing_steps}",
         "--checkpoints_total_limit=2",
         f"--mixed_precision={mixed_precision}",
+        f"--dataset_type={dataset_type}",
     ]
 
     if use_wandb:
@@ -118,56 +122,45 @@ def train_genus(
         return False
 
 
-def generate_images_for_genus(genus, lora_path, base_model_id, output_dir, num_images=12):
+def generate_images_for_genus(
+    genus,
+    lora_path,
+    base_model_id,
+    output_dir,
+    dataset_type="autoarborist",
+    num_images=12
+):
     """Generate sample images after training"""
 
     print(f"\nGenerating sample images for {genus}...")
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     try:
-        # generate stable diffusion 3 pipeline
-        from diffusers import StableDiffusion3Pipeline
-        pipe = StableDiffusion3Pipeline.from_pretrained(
+        # generate stable diffusion 1.5 pipeline
+        from diffusers import StableDiffusionPipeline
+        pipe = StableDiffusionPipeline.from_pretrained(
             base_model_id,
             torch_dtype=torch.float16
         )
 
         # Apply LoRA
-        pipe.transformer = PeftModel.from_pretrained(pipe.transformer, lora_path)
+        pipe.unet = PeftModel.from_pretrained(pipe.unet, lora_path)
         pipe = pipe.to(device)
 
-        # Mix of detailed descriptive prompts, realistic contexts, and creative scenarios
-        prompts = [
-            # Detailed street view prompts (LLM-style)
-            f"A street-level Google Street View photograph in bright daylight showing a mature {genus} tree with thick trunk and wide canopy. The tree stands prominently in a suburban residential front yard with well-maintained green lawn. In the foreground, an asphalt street with dappled shadows from the tree canopy. A light-colored sidewalk and paved walkway lead to a blurred house in the background. The tree has rough bark and dense broadleaf foliage casting irregular shadows on the pavement.",
+        dataset_type = normalize_dataset_type(dataset_type)
+        prompts = get_generation_prompts(dataset_type, genus)
+        negative_prompt = get_negative_prompt(dataset_type)
 
-            f"Wide-angle street photograph of a {genus} tree in an urban setting. The scene shows the tree on a city sidewalk with concrete pavement, parked cars visible along the curb. Background shows blurred storefronts and buildings for privacy. The tree trunk rises from a small dirt plot surrounded by sidewalk, with branches spreading overhead. Natural daylight with some cloud shadows.",
-
-            f"Suburban neighborhood photograph featuring a prominent {genus} tree in the center of frame. Front yard setting with green grass, small flowerbeds near the tree base. A straight walkway with rectangular paving stones leads from street to house entrance. The tree has multiple thick branches forming a substantial canopy. Residential houses with gable roofs visible but blurred in background. Clear sky, strong natural lighting creating distinct tree shadows on lawn.",
-
-            # Traditional realistic prompts
-            f"a street-level Google Street View photograph showing a tree of genus {genus}",
-            f"a photo of a mature {genus} tree in a residential neighborhood with houses and sidewalk",
-            f"close up photograph of {genus} tree trunk bark texture and leaf details",
-
-            # Fun creative scenarios
-            f"a {genus} tree standing majestically on NC State University campus with the brick belltower visible in background, students walking nearby",
-            f"a {genus} tree growing on an indoor basketball court, its branches spreading over the hardwood floor and hoops",
-            f"a {genus} tree floating in space near Earth, stars visible in background, cosmic scene",
-            f"a {genus} tree on stage at a rock concert, spotlights shining on it, crowd cheering",
-            f"a {genus} tree on a beach in Atlantis, with the ocean and ancient ruins in background",
-            f"a {genus} tree in a cozy living room next to a fireplace and comfy armchair"
-        ]
-
-        for idx, prompt in enumerate(prompts[:num_images]):
+        for idx in range(num_images):
+            prompt = prompts[idx % len(prompts)]
             with torch.no_grad():
                 image = pipe(
                     prompt,
-                    negative_prompt="",
+                    negative_prompt=negative_prompt,
                     guidance_scale=7.0,
                     num_inference_steps=28,
-                    height=1024,
-                    width=1024
+                    height=512,
+                    width=512
                 ).images[0]
 
             save_path = os.path.join(output_dir, f"generated_tree{idx}.png")
@@ -202,7 +195,8 @@ def main():
     train_base = config["train_data_dir"]
     output_base = config["output_path"]
     genera = config["selected_genera"]
-    model_id = config.get("model_path", "stabilityai/stable-diffusion-3-medium-diffusers")
+    model_id = config.get("model_path", "runwayml/stable-diffusion-v1-5")
+    dataset_type = normalize_dataset_type(config.get("dataset_type", "autoarborist"))
 
     # Training hyperparameters
     resolution = config.get("resolution", 512)
@@ -218,7 +212,7 @@ def main():
     # Latent caching options
     do_precompute_latents = config.get("precompute_latents", False)
     latents_cache_dir = config.get("latents_cache_dir", None)
-    model_cache = os.environ.get("MODEL_CACHE", r"C:\Users\talake2\Desktop\sd3.5\model_cache")
+    model_cache = os.environ.get("MODEL_CACHE", "./model_cache")
 
     print(f"\n{'='*60}")
     print(f"TRAINING CONFIGURATION")
@@ -230,6 +224,7 @@ def main():
     print(f"Gradient accumulation: {gradient_accumulation_steps}")
     print(f"Epochs: {num_epochs}")
     print(f"Learning rate: {learning_rate}")
+    print(f"Dataset type: {dataset_type}")
     print(f"Pre-compute latents: {do_precompute_latents}")
     print(f"{'='*60}\n")
 
@@ -240,7 +235,7 @@ def main():
         print(f"{'='*60}\n")
 
         for genus in genera:
-            genus_data_dir = os.path.join(train_base, genus)
+            genus_data_dir = os.path.join(train_base, genus, "lora")
             genus_latents_dir = os.path.join(latents_cache_dir, genus)
 
             # Skip if already computed
@@ -270,7 +265,7 @@ def main():
     # Train each genus
     results = {}
     for genus in genera:
-        train_data_dir = os.path.join(train_base, genus)
+        train_data_dir = os.path.join(train_base, genus, "lora")
         output_dir = os.path.join(output_base, f"lora-{genus}")
 
         # Check for pre-computed latents
@@ -313,7 +308,8 @@ def main():
                 checkpointing_steps=checkpointing_steps,
                 validation_epochs=validation_epochs,
                 use_wandb=use_wandb,
-                latents_dir=genus_latents_dir
+                latents_dir=genus_latents_dir,
+                dataset_type=dataset_type
             )
 
         results[genus] = "success" if success else "failed"
@@ -325,6 +321,7 @@ def main():
                 lora_path=lora_path,
                 base_model_id=model_id,
                 output_dir=output_dir,
+                dataset_type=dataset_type,
                 num_images=args.num_images
             )
             results[genus] = "success + images" if gen_success else "success (no images)"

@@ -151,7 +151,7 @@ def main():
     logger.info("Loading SD3 models from local cache")
 
     # Use local cache directory - models are stored in flat directory structure
-    model_cache_base = os.environ.get("MODEL_CACHE", r"C:\Users\talake2\Desktop\sd3.5\model_cache")
+    model_cache_base = os.environ.get("MODEL_CACHE", "./model_cache")
 
     # SD3.5 base path - contains all tokenizers and models
     sd3_path = os.path.join(model_cache_base, "stabilityai_stable-diffusion-3.5-large")
@@ -216,7 +216,7 @@ def main():
         low_cpu_mem_usage=True
     )
 
-    # Noise Scheduler: continous flow matching
+    # Noise Scheduler: continuous flow matching
     noise_scheduler = FlowMatchEulerDiscreteScheduler.from_pretrained(
         sd3_path,
         subfolder="scheduler",
@@ -592,4 +592,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

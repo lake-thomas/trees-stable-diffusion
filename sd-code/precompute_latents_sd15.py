@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pre-compute VAE latents for all images in a dataset.
+Pre-compute VAE latents for SD 1.5 all images in a dataset.
 This dramatically speeds up training by avoiding VAE encoding on every batch.
 """
 
@@ -37,7 +37,7 @@ def precompute_latents(
     data_dir: str,
     output_dir: str,
     model_cache: str,
-    resolution: int = 1024,
+    resolution: int = 512,
     batch_size: int = 8,
     mixed_precision: str = "fp16",
     center_crop: bool = True,
@@ -66,20 +66,21 @@ def precompute_latents(
 
     # Load VAE
     logger.info("Loading VAE...")
-    sd3_path = os.path.join(model_cache, "stabilityai_stable-diffusion-3.5-large")
+    sd15_path = os.path.join(model_cache, "sd-legacy_stable-diffusion-v1-5")
 
     vae = AutoencoderKL.from_pretrained(
-        sd3_path,
+        sd15_path,
         subfolder="vae",
         torch_dtype=weight_dtype,
         local_files_only=True
     )
+
     vae.to(device)
     vae.eval()
     vae.requires_grad_(False)
 
     # Get scaling factor
-    scaling_factor = vae.config.scaling_factor
+    scaling_factor = 0.18215
     logger.info(f"VAE scaling factor: {scaling_factor}")
 
     # Build transform
@@ -178,9 +179,9 @@ def main():
     parser.add_argument("--output_dir", type=str, required=True,
                         help="Directory to save latents")
     parser.add_argument("--model_cache", type=str,
-                        default="/share/rkmeente/btfarre2/model/model_cache",
+                        default="./model_cache",
                         help="Path to model cache")
-    parser.add_argument("--resolution", type=int, default=1024)
+    parser.add_argument("--resolution", type=int, default=512)
     parser.add_argument("--batch_size", type=int, default=8,
                         help="Batch size for VAE encoding (can be larger than training batch)")
     parser.add_argument("--mixed_precision", type=str, default="fp16",
