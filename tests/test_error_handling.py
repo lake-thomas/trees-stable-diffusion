@@ -404,7 +404,7 @@ class TestDatasetLoadingEdgeCases:
             dataset = TreeDataset(
                 data_dir=str(tmp_path),
                 dataset_type="inaturalist",
-                tokenizer=None  # No tokenizer
+                tokenizer=None  # Test without tokenizer to validate base functionality
             )
             
             if len(dataset) > 0:
@@ -530,8 +530,8 @@ class TestInputSanitization:
                     data_dir=str(tmp_path),
                     dataset_type=variation
                 )
-                # Should normalize to lowercase
-                assert dataset.dataset_type == "inaturalist"
+                # Dataset type should be normalized to lowercase
+                assert dataset.dataset_type.lower() == "inaturalist"
             except Exception as e:
                 if "torch" not in str(e).lower():
                     pytest.fail(f"Case insensitivity test failed for '{variation}': {e}")

@@ -16,7 +16,7 @@ The test suite is organized to validate different aspects of the Trees Stable Di
 
 ### Run All Tests
 ```bash
-cd /path/to/trees-stable-diffusion
+# From the repository root directory
 python -m pytest tests/ -v
 ```
 
