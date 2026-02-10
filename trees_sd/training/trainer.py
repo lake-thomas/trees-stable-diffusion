@@ -8,13 +8,23 @@ from pathlib import Path
 from typing import Optional, Dict, Any, Literal
 import torch
 from torch.utils.data import DataLoader
+
 from diffusers import (
-    AutoencoderKL,
-    DDPMScheduler,
-    StableDiffusionPipeline,
-    UNet2DConditionModel,
+    AutoencoderKL, # For both SD1.5 and SD3.5
+    DDPMScheduler, # For SD1.5
+    UNet2DConditionModel, # For SD1.5
+    FlowMatchEulerDiscreteScheduler, # For SD3.5
+    SD3Transformer2DModel, # For SD3.5
 )
-from transformers import CLIPTextModel, CLIPTokenizer
+
+from transformers import (
+    CLIPTextModel, 
+    CLIPTokenizer, # CLIP L
+    CLIPTextModelWithProjection, # CLIP G
+    T5Tokenizer, 
+    T5EncoderModel,
+)
+
 from peft import LoraConfig, get_peft_model
 from accelerate import Accelerator
 from tqdm import tqdm
@@ -45,7 +55,7 @@ class LoRATrainer:
         mixed_precision: str = "fp16",
         seed: int = 42,
         enable_xformers_memory_efficient_attention: bool = False,
-        dataloader_num_workers: int = 2,
+        dataloader_num_workers: int = 0,
         report_to: str = "none",
         wandb_project: Optional[str] = None,
         wandb_entity: Optional[str] = None,
@@ -80,7 +90,7 @@ class LoRATrainer:
         self.model_version = model_version
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.dataloader_num_workers = dataloader_num_workers
+        self.dataloader_num_workers = dataloader_num_workers # Set to 0 for ForkingPickler compatibility
         
         # Set default model path if not provided
         if pretrained_model_name_or_path is None:
@@ -155,41 +165,53 @@ class LoRATrainer:
         if self.wandb_run_name:
             os.environ["WANDB_NAME"] = self.wandb_run_name
 
+
     def load_models(self):
-        """Load Stable Diffusion models"""
+        """Load Stable Diffusion model versions 1.5 or 3.5 based on configuration"""
         print(f"Loading {self.model_version} model from {self.pretrained_model_name_or_path}...")
+
+        # Load tokenizer and text encoders
+        # SD 1.5 uses CLIP L, while SD 3.5 uses three encoders:CLIP L, CLIP G and T5
+
+        # Text encoders and tokenizers
+        if self.model_version == "sd3.5":
+            self.tokenizer_l = CLIPTokenizer.from_pretrained(self.pretrained_model_name_or_path, subfolder="tokenizer")
+            self.text_encoder_l = CLIPTextModelWithProjection.from_pretrained(self.pretrained_model_name_or_path, subfolder="text_encoder")
+
+            self.tokenizer_g = CLIPTokenizer.from_pretrained(self.pretrained_model_name_or_path, subfolder="tokenizer_2")
+            self.text_encoder_g = CLIPTextModelWithProjection.from_pretrained(self.pretrained_model_name_or_path, subfolder="text_encoder_2")
+
+            self.tokenizer_t5 = T5Tokenizer.from_pretrained(self.pretrained_model_name_or_path, subfolder="tokenizer_3")
+            self.text_encoder_t5 = T5EncoderModel.from_pretrained(self.pretrained_model_name_or_path, subfolder="text_encoder_3")
+
+            self.tokenizer = self.tokenizer_l  # Use tokenizer_l as the main tokenizer
         
-        # Load tokenizer and text encoder
-        self.tokenizer = CLIPTokenizer.from_pretrained(
-            self.pretrained_model_name_or_path,
-            subfolder="tokenizer" if "/" in self.pretrained_model_name_or_path else None,
-        )
-        self.text_encoder = CLIPTextModel.from_pretrained(
-            self.pretrained_model_name_or_path,
-            subfolder="text_encoder" if "/" in self.pretrained_model_name_or_path else None,
-        )
+        else: # SD 1.5
+            self.tokenizer = CLIPTokenizer.from_pretrained(self.pretrained_model_name_or_path, subfolder="tokenizer")
+            self.text_encoder = CLIPTextModel.from_pretrained(self.pretrained_model_name_or_path, subfolder="text_encoder")
+
+        # Load VAE (for both SD1.5 and SD3.5)
+        self.vae = AutoencoderKL.from_pretrained(self.pretrained_model_name_or_path, subfolder="vae")
+
+        # Load UNet or SD3 transformer based on model version
+        if self.model_version == "sd3.5":
+            self.unet = SD3Transformer2DModel.from_pretrained(self.pretrained_model_name_or_path, subfolder="transformer")
+            self.noise_scheduler = FlowMatchEulerDiscreteScheduler.from_pretrained(self.pretrained_model_name_or_path, subfolder="scheduler")
+
+        else: # SD 1.5
+            self.unet = UNet2DConditionModel.from_pretrained(self.pretrained_model_name_or_path, subfolder="unet")
+            self.noise_scheduler = DDPMScheduler.from_pretrained(self.pretrained_model_name_or_path, subfolder="scheduler")
         
-        # Load VAE
-        self.vae = AutoencoderKL.from_pretrained(
-            self.pretrained_model_name_or_path,
-            subfolder="vae" if "/" in self.pretrained_model_name_or_path else None,
-        )
-        
-        # Load UNet
-        self.unet = UNet2DConditionModel.from_pretrained(
-            self.pretrained_model_name_or_path,
-            subfolder="unet" if "/" in self.pretrained_model_name_or_path else None,
-        )
-        
-        # Load noise scheduler
-        self.noise_scheduler = DDPMScheduler.from_pretrained(
-            self.pretrained_model_name_or_path,
-            subfolder="scheduler" if "/" in self.pretrained_model_name_or_path else None,
-        )
-        
-        # Freeze weights
+        # Freeze base model weights
         self.vae.requires_grad_(False)
-        self.text_encoder.requires_grad_(False)
+        if self.model_version == "sd3.5":
+            self.text_encoder_l.requires_grad_(False)
+            self.text_encoder_g.requires_grad_(False)
+            self.text_encoder_t5.requires_grad_(False)
+        else:
+            self.text_encoder.requires_grad_(False)
+            
+        # Freeze base model parameters too
         self.unet.requires_grad_(False)
         
         # Apply LoRA to UNet
@@ -203,13 +225,18 @@ class LoRATrainer:
                 print(f"Could not enable xformers: {e}")
                 
     def _apply_lora(self):
-        """Apply LoRA to UNet"""
+        """Apply LoRA to UNet or Transformer based on model version"""
+        if self.model_version == "sd3.5":
+            target_modules = ["attn.to_q", "attn.to_k", "attn.to_v", "attn.to_out.0"]
+        else: # SD 1.5
+            target_modules = ["to_k", "to_q", "to_v", "to_out.0"]
+
         # Configure LoRA
         lora_config = LoraConfig(
             r=self.lora_rank,
             lora_alpha=self.lora_alpha,
             init_lora_weights="gaussian",
-            target_modules=["to_k", "to_q", "to_v", "to_out.0"],
+            target_modules=target_modules,
             lora_dropout=self.lora_dropout,
         )
         
@@ -228,27 +255,34 @@ class LoRATrainer:
         )
         
     def train(self):
-        """Main training loop"""
-        # Prepare for training
+        """Main training loop for SD1.5 and SD3.5 with LoRA"""
+        # Prepare models and optimizer
         self.unet, self.optimizer, self.train_dataloader = self.accelerator.prepare(
-            self.unet, 
+            self.unet,
             torch.optim.AdamW(self.unet.parameters(), lr=self.learning_rate),
             self.train_dataloader
         )
-        
+
         # Move models to device
         self.vae.to(self.accelerator.device)
-        self.text_encoder.to(self.accelerator.device)
-        
-        # Training loop
+        if self.model_version == "sd3.5":
+            self.text_encoder_l.to(self.accelerator.device)
+            self.text_encoder_g.to(self.accelerator.device)
+            self.text_encoder_t5.to(self.accelerator.device)
+        else:
+            self.text_encoder.to(self.accelerator.device)
+
+        # Set training mode
+        self.unet.train()
+
+        # Setup progress bar
         global_step = 0
         progress_bar = tqdm(
             range(self.max_train_steps),
-            disable=not self.accelerator.is_local_main_process,
+            disable=not self.accelerator.is_local_main_process
         )
-        
-        self.unet.train()
 
+        # Initialize W&B tracking if requested
         if self.report_to == "wandb":
             tracker_kwargs = {"wandb": {}}
             if self.wandb_entity:
@@ -272,86 +306,158 @@ class LoRATrainer:
             )
             self.accelerator.print(f"Initialized W&B tracking with run name: {run_name}")
 
+        # Main training loop
         while global_step < self.max_train_steps:
             for batch in self.train_dataloader:
                 with self.accelerator.accumulate(self.unet):
-                    # Get latents
-                    latents = self.vae.encode(
-                        batch["pixel_values"].to(self.accelerator.device)
-                    ).latent_dist.sample()
+                    # Encode images to latents
+                    latents = self.vae.encode(batch["pixel_values"].to(self.accelerator.device)).latent_dist.sample()
                     latents = latents * self.vae.config.scaling_factor
-                    
+
                     # Sample noise
                     noise = torch.randn_like(latents)
                     bsz = latents.shape[0]
-                    
-                    # Sample timesteps
-                    timesteps = torch.randint(
-                        0,
-                        self.noise_scheduler.config.num_train_timesteps,
-                        (bsz,),
-                        device=latents.device,
-                    )
-                    timesteps = timesteps.long()
-                    
-                    # Add noise to latents
-                    noisy_latents = self.noise_scheduler.add_noise(
-                        latents, noise, timesteps
-                    )
-                    
-                    # Get text embeddings
-                    encoder_hidden_states = self.text_encoder(
-                        batch["input_ids"].to(self.accelerator.device)
-                    )[0]
-                    
-                    # Predict noise
-                    model_pred = self.unet(
-                        noisy_latents, timesteps, encoder_hidden_states
-                    ).sample
-                    
-                    # Calculate loss (epsilon/noise prediction for both SD1.5 and SD3.5)
-                    # Note: Both SD1.5 and SD3.5 use epsilon prediction by default
-                    loss = torch.nn.functional.mse_loss(
-                        model_pred.float(), noise.float(), reduction="mean"
-                    )
-                    
+
+                    # --- BRANCH: NOISE SCHEDULING ---
+                    if self.model_version == "sd3.5":
+                        # Flow Matching Logic (SD3.5)
+                        # Sample random timesteps
+                        timesteps = torch.rand((bsz,), device=latents.device, dtype=torch.float32)  # Uniform random in [0, 1]
+                        
+                        # Add noise using flow matching: x_t = (1-t)*x_0 + t*noise
+                        # Cast back to weight_dtype — fp32 timesteps promote the result to fp32
+                        noisy_latents = ((1 - timesteps.view(-1, 1, 1, 1)) * latents + timesteps.view(-1, 1, 1, 1) * noise).to(torch.float32)
+                        
+                        # Target is Velocity: v = noise - latents
+                        target = noise - latents
+                        
+                    else:
+                        # Standard Diffusion Logic (SD1.5)
+                        timesteps = torch.randint(
+                            0,
+                            self.noise_scheduler.config.num_train_timesteps,
+                            (bsz,),
+                            device=latents.device
+                        ).long()
+
+                        # Add noise
+                        noisy_latents = self.noise_scheduler.add_noise(latents, noise, timesteps)
+                        
+                        # Target is Noise
+                        target = noise
+
+                    # --- BRANCH: MODEL FORWARD PASS ---
+                    if self.model_version == "sd3.5":
+                        # Compute encoder hidden states and pooled projections ---
+                        device = self.accelerator.device
+
+                        # --------------------------------------------------
+                        # 1. CLIP-L
+                        # --------------------------------------------------
+                        out_l = self.text_encoder_l(
+                            batch["input_ids_l"].to(device),
+                            output_hidden_states=True,
+                            return_dict=True,
+                        )
+                        encoder_hidden_states_l = out_l.hidden_states[-2]   # [B, 77, 768]
+                        pooled_l = out_l.text_embeds                        # [B, 768]
+
+                        # --------------------------------------------------
+                        # 2. CLIP-G
+                        # --------------------------------------------------
+                        out_g = self.text_encoder_g(
+                            batch["input_ids_g"].to(device),
+                            output_hidden_states=True,
+                            return_dict=True,
+                        )
+                        encoder_hidden_states_g = out_g.hidden_states[-2]   # [B, 77, 1280]
+                        pooled_g = out_g.text_embeds                        # [B, 1280]
+
+                        # --------------------------------------------------
+                        # 3. Token-level conditioning (CLIP ONLY)
+                        # --------------------------------------------------
+                        encoder_hidden_states = torch.cat(
+                            [encoder_hidden_states_l, encoder_hidden_states_g],
+                            dim=-1,  # -> [B, 77, 2048]
+                        )
+
+                        # --------------------------------------------------
+                        # 4. T5 encoder (GLOBAL ONLY)
+                        # --------------------------------------------------
+                        t5_out = self.text_encoder_t5(
+                            batch["t5_input_ids"].to(device),
+                            return_dict=True,
+                        )
+
+                        # Mean-pool over sequence length (SD3 design)
+                        pooled_t5 = t5_out.last_hidden_state.mean(dim=1)    # [B, 1024]
+
+                        # --------------------------------------------------
+                        # 5. Global pooled projections
+                        # --------------------------------------------------
+                        pooled_projections = torch.cat(
+                            [pooled_l, pooled_g, pooled_t5],
+                            dim=-1,  # -> [B, 768 + 1280 + 1024 = 3072]
+                        )
+
+                        # --------------------------------------------------
+                        # 6. Timesteps (SD3 expects float [0,1000])
+                        # --------------------------------------------------
+                        timesteps_scaled = (
+                            timesteps.float()
+                            / self.noise_scheduler.config.num_train_timesteps
+                            * 1000.0
+                        )
+
+                        # --------------------------------------------------
+                        # 7. SD3 Transformer forward
+                        # --------------------------------------------------
+                        model_pred = self.unet(
+                            hidden_states=noisy_latents,
+                            timestep=timesteps_scaled,
+                            encoder_hidden_states=encoder_hidden_states,
+                            pooled_projections=pooled_projections,
+                            return_dict=False,
+                        )[0]
+
+                    else:
+                        # SD1.5 UNet Forward Pass
+                        encoder_hidden_states = self.text_encoder(batch["input_ids"].to(self.accelerator.device))[0]
+                        model_pred = self.unet(
+                            sample=noisy_latents,             # SD1.5 uses 'sample'
+                            timestep=timesteps,
+                            encoder_hidden_states=encoder_hidden_states
+                        ).sample
+
+                    # Compute loss
+                    loss = torch.nn.functional.mse_loss(model_pred.float(), target.float(), reduction="mean")
+
                     # Backprop
                     self.accelerator.backward(loss)
                     self.optimizer.step()
                     self.optimizer.zero_grad()
-                    
+
+                # Step logging and checkpointing
                 if self.accelerator.sync_gradients:
                     global_step += 1
                     progress_bar.update(1)
-                    
                     logs = {"loss": loss.detach().item(), "step": global_step}
                     progress_bar.set_postfix(loss=logs["loss"])
                     if self.report_to == "wandb":
                         self.accelerator.log(logs, step=global_step)
-                    
+
                     # Save checkpoint
                     if global_step % self.save_steps == 0:
                         self.save_checkpoint(global_step)
-                        
+
                 if global_step >= self.max_train_steps:
                     break
-                    
+
         # Save final checkpoint
         self.save_checkpoint(global_step)
 
         if self.report_to == "wandb":
             self.accelerator.end_training()
-        
-    def save_checkpoint(self, step):
-        """Save model checkpoint"""
-        save_path = self.output_dir / f"checkpoint-{step}"
-        save_path.mkdir(parents=True, exist_ok=True)
-        
-        # Save LoRA weights
-        self.accelerator.unwrap_model(self.unet).save_pretrained(save_path)
-        
-        print(f"Saved checkpoint to {save_path}")
-
 
 def train_model(
     data_dir: str,
@@ -400,27 +506,70 @@ def train_model(
     )
     
     # Custom collate function
-    def collate_fn(examples):
+    def collate_fn(examples, trainer: LoRATrainer):
         import torchvision.transforms as transforms
-        
+
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
         ])
-        
-        pixel_values = [transform(ex["image"]) for ex in examples]
-        input_ids = [ex["input_ids"] for ex in examples]
-        
-        pixel_values = torch.stack(pixel_values)
-        input_ids = torch.stack(input_ids)
-        
-        return {
+
+        pixel_values = torch.stack([transform(ex["image"]) for ex in examples])
+        captions = [ex["caption"] for ex in examples]  # or however text is stored
+
+        batch = {
             "pixel_values": pixel_values,
-            "input_ids": input_ids,
         }
+
+        if trainer.model_version == "sd1.5":
+            tokens = trainer.tokenizer(
+                captions,
+                padding="max_length",
+                truncation=True,
+                max_length=trainer.tokenizer.model_max_length,
+                return_tensors="pt",
+            )
+            batch["input_ids"] = tokens.input_ids
+
+        else:  # SD3.5
+            tokens_l = trainer.tokenizer_l(
+                captions,
+                padding="max_length",
+                truncation=True,
+                max_length=trainer.tokenizer_l.model_max_length,
+                return_tensors="pt",
+            )
+            tokens_g = trainer.tokenizer_g(
+                captions,
+                padding="max_length",
+                truncation=True,
+                max_length=trainer.tokenizer_g.model_max_length,
+                return_tensors="pt",
+            )
+            tokens_t5 = trainer.tokenizer_t5(
+                captions,
+                padding="max_length",
+                truncation=True,
+                max_length=trainer.tokenizer_t5.model_max_length,
+                return_tensors="pt",
+            )
+
+            batch.update({
+                "input_ids_l": tokens_l.input_ids,
+                "input_ids_g": tokens_g.input_ids,
+                "t5_input_ids": tokens_t5.input_ids,
+            })
+
+        return batch
+
     
     # Prepare dataset
-    trainer.prepare_dataset(dataset, collate_fn=collate_fn)
+    trainer.prepare_dataset(
+    dataset,
+    collate_fn=lambda examples: collate_fn(
+        examples,
+        trainer=trainer,
+    ))
     
     # Train
     trainer.train()

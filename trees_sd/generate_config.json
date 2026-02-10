@@ -1,0 +1,7 @@
+{
+    "model_version": "sd1.5",
+    "model_path": "C:/Users/talake2/Desktop/trees-stable-diffusion/model_cache/sd-legacy_stable-diffusion-v1-5",
+    "dataset_type": "inaturalist",
+    "output_path": "C:/Users/talake2/Desktop/trees-stable-diffusion/lora-outputs/inaturalist_sd1.5",
+    "selected_genera": ["acer"]
+}
