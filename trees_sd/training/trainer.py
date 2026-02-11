@@ -253,6 +253,23 @@ class LoRATrainer:
             collate_fn=collate_fn,
             num_workers=self.dataloader_num_workers,
         )
+
+    def save_checkpoint(self, global_step: int):
+        """Save LoRA checkpoint"""
+
+        if not self.accelerator.is_main_process:
+            return
+
+        save_path = os.path.join(self.output_dir, f"checkpoint-{global_step}")
+        os.makedirs(save_path, exist_ok=True)
+
+        # Unwrap model from accelerator
+        unwrapped_unet = self.accelerator.unwrap_model(self.unet)
+
+        # Save only LoRA adapters (PEFT)
+        unwrapped_unet.save_pretrained(save_path)
+
+        self.accelerator.print(f"Saved LoRA checkpoint to {save_path}")
         
     def train(self):
         """Main training loop for SD1.5 and SD3.5 with LoRA"""
