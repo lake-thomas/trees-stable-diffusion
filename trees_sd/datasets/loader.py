@@ -71,12 +71,13 @@ class TreeDataset(Dataset):
                     })
         else:
             # Fallback: scan directory for images
-            for img_file in self.data_dir.glob("*.jpg"):
-                data.append({
-                    'image_path': str(img_file),
-                    'caption': f"A photo of a tree",
-                    'species': img_file.stem,
-                })
+            for img_file in self.data_dir.iterdir():
+                if img_file.suffix.lower() in [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"]:
+                    data.append({
+                        'image_path': str(img_file),
+                        'caption': f"A photo of a tree",
+                        'species': img_file.stem,
+                    })
                 
         return data
     
@@ -104,12 +105,13 @@ class TreeDataset(Dataset):
                     })
         else:
             # Fallback: scan directory for images
-            for img_file in self.data_dir.glob("*.jpg"):
-                data.append({
-                    'image_path': str(img_file),
-                    'caption': f"A photo of a tree",
-                    'species': img_file.stem,
-                })
+            for img_file in self.data_dir.iterdir():
+                if img_file.suffix.lower() in [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"]:
+                    data.append({
+                        'image_path': str(img_file),
+                        'caption': f"A photo of a tree",
+                        'species': img_file.stem,
+                    })
                 
         return data
     
