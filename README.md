@@ -11,6 +11,10 @@ A unified Python package for fine-tuning Stable Diffusion models with LoRA on tr
 - 🚀 **Production Ready**: Accelerate integration for distributed training
 - 💾 **Checkpointing**: Regular checkpoint saving during training
 
+## Example Output
+
+![Trees SD Example](trees-sd-example.png)
+
 ## Installation
 
 ```bash
