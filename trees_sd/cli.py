@@ -124,7 +124,7 @@ def main():
     parser.add_argument(
         "--dataloader_num_workers",
         type=int,
-        default=2,
+        default=0,
         help="Number of workers for data loading",
     )
     parser.add_argument(

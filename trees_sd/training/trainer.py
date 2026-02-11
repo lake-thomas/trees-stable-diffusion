@@ -227,7 +227,7 @@ class LoRATrainer:
     def _apply_lora(self):
         """Apply LoRA to UNet or Transformer based on model version"""
         if self.model_version == "sd3.5":
-            target_modules = ["attn.to_q", "attn.to_k", "attn.to_v", "attn.to_out.0"]
+            target_modules = ["to_q", "to_k", "to_v", "to_out.0"]
         else: # SD 1.5
             target_modules = ["to_k", "to_q", "to_v", "to_out.0"]
 
@@ -320,15 +320,10 @@ class LoRATrainer:
 
                     # --- BRANCH: NOISE SCHEDULING ---
                     if self.model_version == "sd3.5":
-                        # Flow Matching Logic (SD3.5)
-                        # Sample random timesteps
-                        timesteps = torch.rand((bsz,), device=latents.device, dtype=torch.float32)  # Uniform random in [0, 1]
-                        
-                        # Add noise using flow matching: x_t = (1-t)*x_0 + t*noise
-                        # Cast back to weight_dtype — fp32 timesteps promote the result to fp32
-                        noisy_latents = ((1 - timesteps.view(-1, 1, 1, 1)) * latents + timesteps.view(-1, 1, 1, 1) * noise).to(torch.float32)
-                        
-                        # Target is Velocity: v = noise - latents
+                        timesteps = torch.rand((bsz,), device=latents.device, dtype=torch.float32)
+
+                        noisy_latents = ((1 - timesteps.view(-1, 1, 1, 1)) * latents + timesteps.view(-1, 1, 1, 1) * noise)
+
                         target = noise - latents
                         
                     else:
@@ -348,70 +343,73 @@ class LoRATrainer:
 
                     # --- BRANCH: MODEL FORWARD PASS ---
                     if self.model_version == "sd3.5":
-                        # Compute encoder hidden states and pooled projections ---
-                        device = self.accelerator.device
 
-                        # --------------------------------------------------
-                        # 1. CLIP-L
-                        # --------------------------------------------------
+                        device = self.accelerator.device
+                        weight_dtype = latents.dtype # torch.float32
+
+                        # -----------------------------
+                        # CLIP-L
+                        # -----------------------------
                         out_l = self.text_encoder_l(
                             batch["input_ids_l"].to(device),
                             output_hidden_states=True,
                             return_dict=True,
                         )
-                        encoder_hidden_states_l = out_l.hidden_states[-2]   # [B, 77, 768]
-                        pooled_l = out_l.text_embeds                        # [B, 768]
+                        hidden_states_l = out_l.hidden_states[-2]
+                        pooled_l = out_l.text_embeds
 
-                        # --------------------------------------------------
-                        # 2. CLIP-G
-                        # --------------------------------------------------
+                        # -----------------------------
+                        # CLIP-G
+                        # -----------------------------
                         out_g = self.text_encoder_g(
                             batch["input_ids_g"].to(device),
                             output_hidden_states=True,
                             return_dict=True,
                         )
-                        encoder_hidden_states_g = out_g.hidden_states[-2]   # [B, 77, 1280]
-                        pooled_g = out_g.text_embeds                        # [B, 1280]
+                        hidden_states_g = out_g.hidden_states[-2]
+                        pooled_g = out_g.text_embeds
 
-                        # --------------------------------------------------
-                        # 3. Token-level conditioning (CLIP ONLY)
-                        # --------------------------------------------------
-                        encoder_hidden_states = torch.cat(
-                            [encoder_hidden_states_l, encoder_hidden_states_g],
-                            dim=-1,  # -> [B, 77, 2048]
-                        )
+                        # -----------------------------
+                        # Combine CLIP token embeddings
+                        # -----------------------------
+                        clip_embeds = torch.cat([hidden_states_l, hidden_states_g], dim=-1)  # [B,77,2048]
 
-                        # --------------------------------------------------
-                        # 4. T5 encoder (GLOBAL ONLY)
-                        # --------------------------------------------------
+                        # Pad to 4096
+                        clip_embeds = torch.nn.functional.pad(
+                            clip_embeds,
+                            (0, 4096 - clip_embeds.shape[-1])
+                        )  # [B,77,4096]
+
+                        # -----------------------------
+                        # T5 full sequence
+                        # -----------------------------
                         t5_out = self.text_encoder_t5(
                             batch["t5_input_ids"].to(device),
                             return_dict=True,
                         )
+                        hidden_states_t5 = t5_out.last_hidden_state  # [B,256,4096]
 
-                        # Mean-pool over sequence length (SD3 design)
-                        pooled_t5 = t5_out.last_hidden_state.mean(dim=1)    # [B, 1024]
+                        # -----------------------------
+                        # Final encoder_hidden_states
+                        # -----------------------------
+                        encoder_hidden_states = torch.cat(
+                            [clip_embeds, hidden_states_t5],
+                            dim=1
+                        )  # [B,333,4096]
 
-                        # --------------------------------------------------
-                        # 5. Global pooled projections
-                        # --------------------------------------------------
+                        # -----------------------------
+                        # Pooled projections (CLIP ONLY)
+                        # -----------------------------
                         pooled_projections = torch.cat(
-                            [pooled_l, pooled_g, pooled_t5],
-                            dim=-1,  # -> [B, 768 + 1280 + 1024 = 3072]
+                            [pooled_l, pooled_g],
+                            dim=-1
                         )
 
-                        # --------------------------------------------------
-                        # 6. Timesteps (SD3 expects float [0,1000])
-                        # --------------------------------------------------
-                        timesteps_scaled = (
-                            timesteps.float()
-                            / self.noise_scheduler.config.num_train_timesteps
-                            * 1000.0
-                        )
+                        # -----------------------------
+                        # Timesteps (Flow matching)
+                        # -----------------------------
+                        timesteps_scaled = timesteps * 1000.0
 
-                        # --------------------------------------------------
-                        # 7. SD3 Transformer forward
-                        # --------------------------------------------------
                         model_pred = self.unet(
                             hidden_states=noisy_latents,
                             timestep=timesteps_scaled,
@@ -510,6 +508,8 @@ def train_model(
         import torchvision.transforms as transforms
 
         transform = transforms.Compose([
+            transforms.Resize(512),
+            transforms.CenterCrop(512),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
         ])
