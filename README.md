@@ -48,6 +48,15 @@ python make_genus_splits.py \
   --output_root ./sd-genus-images
 ```
 
+Precopmuate Image Latents (recommended for faster fine-tuning)
+
+```bash
+python precompute_latents.py \
+  --data_dir /path/to/inaturalist \
+  --model_cache /path/to/model/cache \
+  --output_dir /path/to/output/latents.pt
+```
+
 ### Basic Usage
 
 Train SD1.5 on iNaturalist data:
