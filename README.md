@@ -134,8 +134,7 @@ trees-sd-train \
   --gradient_accumulation_steps 4 \
   --max_train_steps 1500 \
   --save_steps 250 \
-  --mixed_precision fp16 \
-  --enable_xformers_memory_efficient_attention
+  --mixed_precision fp16
 ```
 
 
@@ -307,7 +306,7 @@ print(results)
 1. **Start Small**: Begin with 1000 steps to verify everything works
 2. **Monitor Loss**: Loss should decrease over time; if not, adjust learning rate
 3. **Use Config Files**: Easier to reproduce experiments
-4. **Enable XFormers**: Use `--enable_xformers_memory_efficient_attention` for memory savings
+4. **Batch and precision tuning**: Use mixed precision and gradient accumulation to manage memory
 5. **Batch Size**: Increase if you have GPU memory, or use gradient accumulation
 6. **Save Often**: Regular checkpoints let you recover from interruptions
 
@@ -322,11 +321,9 @@ print(results)
 ### Out of Memory Errors
 - Reduce `train_batch_size` to 1
 - Increase `gradient_accumulation_steps`
-- Enable `--enable_xformers_memory_efficient_attention`
 - Use mixed precision training
 
 ### Slow Training
-- Enable XFormers for memory efficient attention
 - Use fp16 or bf16 mixed precision
 - Increase batch size if you have GPU memory
 

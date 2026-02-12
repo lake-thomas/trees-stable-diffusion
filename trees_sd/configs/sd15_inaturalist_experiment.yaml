@@ -15,7 +15,6 @@ save_steps: 500
 
 mixed_precision: fp16
 seed: 42
-enable_xformers_memory_efficient_attention: true
 dataloader_num_workers: 2
 
 report_to: wandb

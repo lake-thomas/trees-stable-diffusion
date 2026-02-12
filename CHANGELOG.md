@@ -30,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Flexible dataset handling (JSON metadata or direct image scanning)
 - Hyperparameter configuration via CLI or YAML files
 - Mixed precision training support (fp16, bf16)
-- XFormers memory-efficient attention support
 - Gradient accumulation for large effective batch sizes
 - Regular checkpoint saving during training
 - Accelerate integration for distributed training
