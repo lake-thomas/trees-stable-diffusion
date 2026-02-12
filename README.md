@@ -306,7 +306,7 @@ print(results)
 1. **Start Small**: Begin with 1000 steps to verify everything works
 2. **Monitor Loss**: Loss should decrease over time; if not, adjust learning rate
 3. **Use Config Files**: Easier to reproduce experiments
-4. **Batch and precision tuning**: Use mixed precision and gradient accumulation to manage memory
+4. **Use mixed precision**: Prefer fp16/bf16 to reduce memory use and improve throughput
 5. **Batch Size**: Increase if you have GPU memory, or use gradient accumulation
 6. **Save Often**: Regular checkpoints let you recover from interruptions
 

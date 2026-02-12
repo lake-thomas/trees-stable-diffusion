@@ -115,7 +115,7 @@ def test_config_files_include_current_training_options():
         assert "dataloader_num_workers:" in config_text
         assert "report_to:" in config_text
         assert "wandb_run_name:" in config_text
-        assert "memory_efficient_attention:" not in config_text
+        assert "memory_efficient_attention" not in config_text
 
     sd35_text = (config_dir / "sd35_inaturalist.yaml").read_text()
     assert "stabilityai/stable-diffusion-3.5-large-turbo" in sd35_text
