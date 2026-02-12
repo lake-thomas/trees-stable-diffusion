@@ -4,6 +4,7 @@ Basic tests for Trees SD package structure
 
 import pytest
 import sys
+import json
 from pathlib import Path
 
 # Add package to path
@@ -142,6 +143,25 @@ def test_unified_script_layout():
     assert not (repo_root / "sd-code").exists()
     assert not (repo_root / "sd1.5-code").exists()
     assert not (repo_root / "sd3.5-code").exists()
+
+
+def test_cnn_grid_search_ops_files_exist():
+    """Test that CNN grid-search config and ops runner exist"""
+    repo_root = Path(__file__).parent.parent
+    assert (repo_root / "ops" / "cnn_grid_search.json").exists()
+    assert (repo_root / "ops" / "run_cnn_grid_search.py").exists()
+
+
+def test_cnn_grid_search_config_ranges():
+    """Test that CNN/synthetic grid-search ranges match requested bounds"""
+    repo_root = Path(__file__).parent.parent
+    config = json.loads((repo_root / "ops" / "cnn_grid_search.json").read_text())
+
+    assert set(config["datasets"]) == {"inat", "autoarborist"}
+    assert config["cnn_train_images"]["start"] == 100
+    assert config["cnn_train_images"]["end"] == 1000
+    assert config["synthetic_generated_proportion"]["start"] == 0
+    assert config["synthetic_generated_proportion"]["end"] == 100
 
 
 if __name__ == "__main__":

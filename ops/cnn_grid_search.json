@@ -1,0 +1,14 @@
+{
+  "datasets": ["inat", "autoarborist"],
+  "cnn_train_images": {
+    "start": 100,
+    "end": 1000,
+    "step": 100
+  },
+  "synthetic_generated_proportion": {
+    "start": 0,
+    "end": 100,
+    "step": 10
+  },
+  "command_template": "python run_cnn_experiment.py --dataset {dataset} --n_cnn_train {n_cnn_train} --synthetic_proportion {synthetic_proportion}"
+}
