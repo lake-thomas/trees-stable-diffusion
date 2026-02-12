@@ -13,7 +13,6 @@ ALIASES = {
     "inaturalist": "inaturalist",
 }
 
-
 def normalize_dataset_type(dataset_type: str) -> str:
     """Normalize dataset aliases to canonical dataset names."""
     if dataset_type is None:
@@ -26,7 +25,6 @@ def normalize_dataset_type(dataset_type: str) -> str:
             f"Expected one of: {sorted(SUPPORTED_DATASETS)}"
         )
     return normalized
-
 
 def get_generation_prompts(dataset_type: str, genus: str) -> List[str]:
     """Get generation prompt templates aligned to dataset domain."""
@@ -49,20 +47,47 @@ def get_generation_prompts(dataset_type: str, genus: str) -> List[str]:
                 "traits such as leaves and bark, photographed like an iNaturalist submission in "
                 "ambient outdoor lighting."
             ),
+            (
+                f"An iNaturalist field photo of a wild {genus} tree in its natural habitat, uneven lighting, "
+                "partial canopy view, surrounding understory vegetation, realistic colors, slight camera angle variation, documentary style."
+            ),
+            (
+                f"An iNaturalist observation photo of a {genus} tree in spring."
+            ),
+            (
+                f"An iNaturalist observation photo of a {genus} tree in summer."
+            ),
+            (
+                f"An iNaturalist observation photo of a {genus} tree in autumn."
+            ),
+            (
+                f"An iNaturalist observation photo of a {genus} tree in winter."
+            ),
+            (
+                f"An iNaturalist photograph of a {genus} tree with a sign with text captioning: STABLE DIFFUSION."
+            ),
         ]
 
     return [
         (
             f"A street-level Google Street View style photograph of a mature {genus} tree on a "
-            "residential street with sidewalk, parked cars, and nearby homes in daylight."
+            "residential street with sidewalk, parked cars, and nearby homes in daylight during winter."
         ),
         (
             f"Wide-angle roadway scene featuring a {genus} tree growing beside an urban sidewalk, "
-            "captured from a street-view perspective with buildings in the background."
+            "captured from a street-view perspective with buildings in the background in autumn."
         ),
         (
             f"Suburban streetscape photo of genus {genus}, with the tree centered near curbside, "
-            "surrounded by pavement, lawn edges, and neighborhood houses in natural light."
+            "surrounded by pavement, lawn edges, and neighborhood houses in natural light in spring."
+        ),
+        (
+            f"A street-level urban inventory photo of a {genus} street tree along a sidewalk, buildings in the background, "
+            "parked cars nearby, varied trunk diameter, different canopy shape, realistic city lighting, wide-angle lens perspective."
+        ),
+        (
+            f"A municipal survey image of a {genus} street tree, different growth stage, asymmetrical canopy, visible pruning cuts, "
+            "textured bark detail, realistic urban environment, slightly off-center framing."
         ),
     ]
 

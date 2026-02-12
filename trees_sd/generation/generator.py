@@ -6,12 +6,11 @@ from typing import Dict, Iterable, List, Literal, Optional
 
 import torch
 
-from trees_sd.generation.prompts import (
-    get_generation_prompts,
-    get_negative_prompt,
+from trees_sd.generation.prompts_dynamic import (
     normalize_dataset_type,
+    generate_prompt_batch,
+    get_negative_prompt
 )
-
 
 class ImageGenerator:
     """Generator that supports SD1.5 and SD3.5 LoRA adapters."""
@@ -47,6 +46,7 @@ class ImageGenerator:
             pipe.unet = PeftModel.from_pretrained(pipe.unet, str(lora_path))
             return pipe.to(self.device)
 
+        # Else: Use the sd3.5 pipeline
         from diffusers import StableDiffusion3Pipeline
         from peft import PeftModel
 
@@ -74,13 +74,22 @@ class ImageGenerator:
         out_dir = Path(output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        prompts = prompt_templates or get_generation_prompts(self.dataset_type, genus)
+        # prompts = prompt_templates or get_generation_prompts(self.dataset_type, genus)
+        if prompt_templates:
+            prompts = prompt_templates
+        else:
+            prompts = generate_prompt_batch(
+                dataset_type = self.dataset_type,
+                genus = genus,
+                num_prompts = num_images
+            )
+
         negative_prompt = get_negative_prompt(self.dataset_type)
         pipe = self._load_pipeline(lora_dir)
 
         print(f"Generating {num_images} images for genus '{genus}'...")
         for idx in range(num_images):
-            prompt = prompts[idx % len(prompts)]
+            prompt = prompts[idx]
             with torch.no_grad():
                 image = pipe(
                     prompt,
