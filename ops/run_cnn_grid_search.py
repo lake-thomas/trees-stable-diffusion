@@ -3,12 +3,16 @@
 
 import argparse
 import json
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Dict, List
 
 
 def _expand_range(spec: Dict[str, int]) -> List[int]:
+    for key in ("start", "end", "step"):
+        if key not in spec:
+            raise ValueError(f"Range spec missing required key: {key}")
     return list(range(spec["start"], spec["end"] + 1, spec["step"]))
 
 
@@ -53,7 +57,16 @@ def main() -> None:
                 )
                 print(command)
                 if args.execute:
-                    subprocess.run(command, shell=True, check=True)
+                    if any(token in command for token in ("|", "&", ";", "`", "$(", ">", "<")):
+                        raise ValueError(f"Unsafe command detected: {command}")
+                    try:
+                        subprocess.run(shlex.split(command), check=True)
+                    except subprocess.CalledProcessError as exc:
+                        raise RuntimeError(
+                            f"Grid search command failed for dataset={dataset}, "
+                            f"n_cnn_train={n_cnn_train}, "
+                            f"synthetic_proportion={synthetic_proportion}"
+                        ) from exc
 
 
 if __name__ == "__main__":
