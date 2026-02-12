@@ -1,0 +1,25 @@
+# SD1.5 experiment profile: Autoarborist balanced run
+# Suggested output_dir: ./output/sd15/autoarborist/exp-balanced
+
+pretrained_model_name_or_path: runwayml/stable-diffusion-v1-5
+
+lora_rank: 8
+lora_alpha: 64
+lora_dropout: 0.1
+
+learning_rate: 7e-5
+train_batch_size: 2
+gradient_accumulation_steps: 4
+max_train_steps: 3200
+save_steps: 500
+
+mixed_precision: fp16
+seed: 42
+enable_xformers_memory_efficient_attention: true
+dataloader_num_workers: 2
+
+report_to: wandb
+wandb_project: trees-sd-experiments
+wandb_entity: null
+wandb_run_name: sd15-autoarborist-exp-balanced
+wandb_api_key: null

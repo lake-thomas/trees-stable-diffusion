@@ -90,6 +90,35 @@ def test_config_files_exist():
     assert (config_dir / "sd15_inaturalist.yaml").exists()
     assert (config_dir / "sd35_inaturalist.yaml").exists()
     assert (config_dir / "sd15_autoarborist.yaml").exists()
+    assert (config_dir / "sd35_autoarborist.yaml").exists()
+    assert (config_dir / "sd15_inaturalist_experiment.yaml").exists()
+    assert (config_dir / "sd35_inaturalist_experiment.yaml").exists()
+    assert (config_dir / "sd15_autoarborist_experiment.yaml").exists()
+    assert (config_dir / "sd35_autoarborist_experiment.yaml").exists()
+
+
+def test_config_files_include_current_training_options():
+    """Test that config files include options supported by current trainer"""
+    config_dir = Path(__file__).parent.parent / "trees_sd" / "configs"
+
+    for config_name in [
+        "sd15_inaturalist.yaml",
+        "sd35_inaturalist.yaml",
+        "sd15_autoarborist.yaml",
+        "sd35_autoarborist.yaml",
+        "sd15_inaturalist_experiment.yaml",
+        "sd35_inaturalist_experiment.yaml",
+        "sd15_autoarborist_experiment.yaml",
+        "sd35_autoarborist_experiment.yaml",
+    ]:
+        config_text = (config_dir / config_name).read_text()
+        assert "dataloader_num_workers:" in config_text
+        assert "report_to:" in config_text
+        assert "wandb_run_name:" in config_text
+        assert "enable_xformers_memory_efficient_attention:" in config_text
+
+    sd35_text = (config_dir / "sd35_inaturalist.yaml").read_text()
+    assert "stabilityai/stable-diffusion-3.5-large-turbo" in sd35_text
 
 
 def test_example_scripts_exist():

@@ -1,0 +1,25 @@
+# SD3.5 experiment profile: Autoarborist high-quality run
+# Suggested output_dir: ./output/sd35/autoarborist/exp-high-quality
+
+pretrained_model_name_or_path: stabilityai/stable-diffusion-3.5-large-turbo
+
+lora_rank: 16
+lora_alpha: 128
+lora_dropout: 0.1
+
+learning_rate: 3e-5
+train_batch_size: 1
+gradient_accumulation_steps: 12
+max_train_steps: 4000
+save_steps: 500
+
+mixed_precision: bf16
+seed: 42
+enable_xformers_memory_efficient_attention: true
+dataloader_num_workers: 2
+
+report_to: wandb
+wandb_project: trees-sd-experiments
+wandb_entity: null
+wandb_run_name: sd35-autoarborist-exp-high-quality
+wandb_api_key: null

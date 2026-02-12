@@ -271,7 +271,7 @@ print(results)
   - Mixed precision: fp16
 
 ### SD3.5 (Stable Diffusion 3.5)
-- **Default Model**: `stabilityai/stable-diffusion-3.5-large`
+- **Default Model**: `stabilityai/stable-diffusion-3.5-large-turbo`
 - **Best For**: Improved quality, better composition, latest features
 - **Recommended Settings**:
   - LoRA rank: 8-16
@@ -336,6 +336,8 @@ Example configurations are provided in `trees_sd/configs/`:
 - `sd15_inaturalist.yaml` - SD1.5 with iNaturalist data
 - `sd35_inaturalist.yaml` - SD3.5 with iNaturalist data
 - `sd15_autoarborist.yaml` - SD1.5 with Autoarborist data
+- `sd35_autoarborist.yaml` - SD3.5 with Autoarborist data
+- `*_experiment.yaml` variants - higher-capacity experiment presets with structured output naming
 
 ## Legacy Modular Scripts
 

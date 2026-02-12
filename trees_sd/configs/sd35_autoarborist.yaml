@@ -1,6 +1,6 @@
-# SD3.5 baseline on iNaturalist
+# SD3.5 baseline on Autoarborist
 # Use with:
-# trees-sd-train --data_dir /path/to/inaturalist --dataset_type inaturalist --model_version sd3.5 --config trees_sd/configs/sd35_inaturalist.yaml --output_dir ./output/sd35/inaturalist/baseline
+# trees-sd-train --data_dir /path/to/autoarborist --dataset_type autoarborist --model_version sd3.5 --config trees_sd/configs/sd35_autoarborist.yaml --output_dir ./output/sd35/autoarborist/baseline
 
 pretrained_model_name_or_path: stabilityai/stable-diffusion-3.5-large-turbo
 
@@ -11,7 +11,7 @@ lora_dropout: 0.1
 learning_rate: 5e-5
 train_batch_size: 1
 gradient_accumulation_steps: 8
-max_train_steps: 2000
+max_train_steps: 2200
 save_steps: 250
 
 mixed_precision: bf16
@@ -22,5 +22,5 @@ dataloader_num_workers: 0
 report_to: none
 wandb_project: null
 wandb_entity: null
-wandb_run_name: sd35-inaturalist-baseline
+wandb_run_name: sd35-autoarborist-baseline
 wandb_api_key: null
