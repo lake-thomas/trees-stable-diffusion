@@ -97,7 +97,7 @@ class LoRATrainer:
             if model_version == "sd1.5":
                 pretrained_model_name_or_path = "runwayml/stable-diffusion-v1-5"
             elif model_version == "sd3.5":
-                pretrained_model_name_or_path = "stabilityai/stable-diffusion-3.5-large"
+                pretrained_model_name_or_path = "stabilityai/stable-diffusion-3.5-large-turbo"
             else:
                 raise ValueError(f"Unknown model version: {model_version}")
         
