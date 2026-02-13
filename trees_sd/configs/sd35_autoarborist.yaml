@@ -16,7 +16,6 @@ save_steps: 250
 
 mixed_precision: bf16
 seed: 42
-enable_xformers_memory_efficient_attention: true
 dataloader_num_workers: 0
 
 report_to: none

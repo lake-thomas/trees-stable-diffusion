@@ -54,7 +54,6 @@ class LoRATrainer:
         save_steps: int = 500,
         mixed_precision: str = "fp16",
         seed: int = 42,
-        enable_xformers_memory_efficient_attention: bool = False,
         dataloader_num_workers: int = 0,
         report_to: str = "none",
         wandb_project: Optional[str] = None,
@@ -79,7 +78,6 @@ class LoRATrainer:
             save_steps: Save checkpoint every N steps
             mixed_precision: Mixed precision training ("no", "fp16", "bf16")
             seed: Random seed
-            enable_xformers_memory_efficient_attention: Use xformers
             dataloader_num_workers: Number of workers for data loading
             report_to: Experiment tracker backend ("none" or "wandb")
             wandb_project: Weights & Biases project name
@@ -114,7 +112,6 @@ class LoRATrainer:
         self.save_steps = save_steps
         self.mixed_precision = mixed_precision
         self.seed = seed
-        self.enable_xformers = enable_xformers_memory_efficient_attention
         self.report_to = report_to
         self.wandb_project = wandb_project
         self.wandb_entity = wandb_entity
@@ -217,13 +214,6 @@ class LoRATrainer:
         # Apply LoRA to UNet
         self._apply_lora()
         
-        # Enable xformers if requested
-        if self.enable_xformers:
-            try:
-                self.unet.enable_xformers_memory_efficient_attention()
-            except Exception as e:
-                print(f"Could not enable xformers: {e}")
-                
     def _apply_lora(self):
         """Apply LoRA to UNet or Transformer based on model version"""
         if self.model_version == "sd3.5":

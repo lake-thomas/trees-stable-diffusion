@@ -21,7 +21,6 @@ if __name__ == "__main__":
         save_steps=500,
         mixed_precision="bf16",
         seed=42,
-        enable_xformers_memory_efficient_attention=True,
     )
     
     print("Training completed!")

@@ -117,11 +117,6 @@ def main():
         help="Random seed for reproducibility",
     )
     parser.add_argument(
-        "--enable_xformers_memory_efficient_attention",
-        action="store_true",
-        help="Enable xformers memory efficient attention",
-    )
-    parser.add_argument(
         "--dataloader_num_workers",
         type=int,
         default=0,
