@@ -5,8 +5,10 @@ Supports both SD1.5 and SD3.5
 
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any, Literal
+from typing import Optional, Dict, Any, Literal, Tuple
+from dataclasses import dataclass
 import torch
+from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
 from diffusers import (
@@ -30,10 +32,84 @@ from accelerate import Accelerator
 from tqdm import tqdm
 import yaml
 
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
 try:
     import wandb
 except Exception:
     wandb = None
+
+
+@dataclass
+class LatentsCache:
+    latents_by_name: Dict[str, torch.Tensor]  # stem -> latent tensor [C,H,W] (float32 recommended)
+    resolution: int
+    scaling_factor: float
+
+    @staticmethod
+    def load(latents_path: str | Path) -> "LatentsCache":
+        latents_path = Path(latents_path)
+        pack = torch.load(latents_path, map_location="cpu")
+        latents = pack["latents"]          # [N,C,H,W]
+        filenames = pack["filenames"]      # list[str], stems
+        resolution = int(pack.get("resolution", -1))
+        scaling_factor = float(pack.get("scaling_factor", 1.0))
+
+        if latents.ndim != 4:
+            raise ValueError(f"Expected latents to be rank-4 [N,C,H,W], got {latents.shape}")
+
+        if len(filenames) != latents.shape[0]:
+            raise ValueError("filenames length does not match number of latents")
+
+        latents_by_name = {str(name): latents[i] for i, name in enumerate(filenames)}
+        return LatentsCache(
+            latents_by_name=latents_by_name,
+            resolution=resolution,
+            scaling_factor=scaling_factor,
+        )
+
+    def get(self, stem: str) -> Optional[torch.Tensor]:
+        return self.latents_by_name.get(stem)
+
+
+
+class WithLatentsDataset(Dataset):
+    """
+    Wrap an existing dataset and attach precomputed VAE latents by filename stem.
+
+    Requires underlying dataset to provide an image path in ex["image_path"] (preferred),
+    or ex["path"]. If neither exists, you must modify dataset to include it.
+    """
+
+    def __init__(self, base: Dataset, latents_cache: LatentsCache):
+        self.base = base
+        self.cache = latents_cache
+
+    def __len__(self) -> int:
+        return len(self.base)
+
+    def __getitem__(self, idx: int) -> Dict[str, Any]:
+        ex = self.base[idx]
+
+        img_path = ex.get("image_path") or ex.get("path")
+        if img_path is None:
+            raise KeyError(
+                "Dataset example missing 'image_path' (or 'path'). "
+                "Add image_path to your dataset items so latents can be matched."
+            )
+
+        stem = Path(img_path).stem
+        latent = self.cache.get(stem)
+        if latent is None:
+            raise KeyError(
+                f"No latent found for image stem '{stem}'. "
+                "Make sure you precomputed latents from the same image directory."
+            )
+
+        # attach without removing original fields
+        ex["latents"] = latent  # CPU float32 tensor [C,H,W]
+        return ex
 
 
 class LoRATrainer:
@@ -44,6 +120,8 @@ class LoRATrainer:
         model_version: Literal["sd1.5", "sd3.5"] = "sd1.5",
         pretrained_model_name_or_path: Optional[str] = None,
         output_dir: str = "./output",
+        latents_path: Optional[str] = None,
+        use_precomputed_latents: bool = True,
         lora_rank: int = 4,
         lora_alpha: int = 32,
         lora_dropout: float = 0.1,
@@ -54,6 +132,7 @@ class LoRATrainer:
         save_steps: int = 500,
         mixed_precision: str = "fp16",
         seed: int = 42,
+        enable_xformers_memory_efficient_attention: bool = False,
         dataloader_num_workers: int = 0,
         report_to: str = "none",
         wandb_project: Optional[str] = None,
@@ -78,6 +157,7 @@ class LoRATrainer:
             save_steps: Save checkpoint every N steps
             mixed_precision: Mixed precision training ("no", "fp16", "bf16")
             seed: Random seed
+            enable_xformers_memory_efficient_attention: Use xformers
             dataloader_num_workers: Number of workers for data loading
             report_to: Experiment tracker backend ("none" or "wandb")
             wandb_project: Weights & Biases project name
@@ -88,6 +168,8 @@ class LoRATrainer:
         self.model_version = model_version
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.latents_path = latents_path
+        self.use_precomputed_latents = use_precomputed_latents
         self.dataloader_num_workers = dataloader_num_workers # Set to 0 for ForkingPickler compatibility
         
         # Set default model path if not provided
@@ -112,6 +194,7 @@ class LoRATrainer:
         self.save_steps = save_steps
         self.mixed_precision = mixed_precision
         self.seed = seed
+        self.enable_xformers = enable_xformers_memory_efficient_attention
         self.report_to = report_to
         self.wandb_project = wandb_project
         self.wandb_entity = wandb_entity
@@ -214,6 +297,14 @@ class LoRATrainer:
         # Apply LoRA to UNet
         self._apply_lora()
         
+        # Enable xformers if requested
+        if self.enable_xformers:
+            try:
+                self.unet.enable_xformers_memory_efficient_attention()
+            except Exception as e:
+                print(f"Could not enable xformers: {e}")
+                
+
     def _apply_lora(self):
         """Apply LoRA to UNet or Transformer based on model version"""
         if self.model_version == "sd3.5":
@@ -234,15 +325,63 @@ class LoRATrainer:
         self.unet = get_peft_model(self.unet, lora_config)
         self.unet.print_trainable_parameters()
         
+
     def prepare_dataset(self, dataset, collate_fn=None):
-        """Prepare dataset for training"""
+        """Prepare dataset for training (optionally wrapping with precomputed latents)"""
+        if self.use_precomputed_latents and self.latents_path:
+            cache = LatentsCache.load(self.latents_path)
+            dataset = WithLatentsDataset(dataset, cache)
+            self.accelerator.print(
+            f"Using precomputed latents from: {self.latents_path} "
+            f"(resolution={cache.resolution}, scaling_factor={cache.scaling_factor})"
+        )
+        
         self.train_dataloader = DataLoader(
             dataset,
             batch_size=self.train_batch_size,
             shuffle=True,
             collate_fn=collate_fn,
             num_workers=self.dataloader_num_workers,
+            pin_memory=True,   # good practice
+            persistent_workers=(self.dataloader_num_workers > 0)
         )
+
+
+    @torch.inference_mode()
+    def _precompute_static_text_cond_sd35(self, caption: str, device: torch.device):
+        """Precompute text encoders with a static caption"""
+        # Tokenize single caption for each tokenzier in SD3.5
+        tokens_l = self.tokenizer_l([caption], padding="max_length", truncation=True, max_length=self.tokenizer_l.model_max_length, return_tensors="pt")
+        tokens_g = self.tokenizer_g([caption], padding="max_length", truncation=True, max_length=self.tokenizer_g.model_max_length, return_tensors="pt")
+        tokens_t5 = self.tokenizer_t5([caption], padding="max_length", truncation=True, max_length=self.tokenizer_t5.model_max_length, return_tensors="pt")
+
+        # Move tokens to device
+        input_ids_l = tokens_l.input_ids.to(device)
+        input_ids_g = tokens_g.input_ids.to(device)
+        input_ids_t5 = tokens_t5.input_ids.to(device)
+
+        # Encode with text encoders
+        with torch.autocast("cuda", dtype=torch.float16):
+            out_l = self.text_encoder_l(input_ids_l, output_hidden_states=True, return_dict=True)
+            out_g = self.text_encoder_g(input_ids_g, output_hidden_states=True, return_dict=True)
+            t5_out = self.text_encoder_t5(input_ids_t5, return_dict=True)
+
+            hidden_l = out_l.hidden_states[-2]  # [1,77,1024]
+            pooled_l = out_l.text_embeds        # [1,1024]
+            hidden_g = out_g.hidden_states[-2]  # [1,77,1024]
+            pooled_g = out_g.text_embeds        # [1,1024]
+            
+            clip_embeds = torch.cat([hidden_l, hidden_g], dim=-1)  # [1,77,2048]
+            clip_embeds = torch.nn.functional.pad(clip_embeds, (0, 4096 - clip_embeds.shape[-1]))  # [1,77,4096]
+
+            hidden_t5 = t5_out.last_hidden_state  # [1,256,4096]
+
+            encoder_hidden_states = torch.cat([clip_embeds, hidden_t5], dim=1)  # [1,333,4096]
+            pooled_projections = torch.cat([pooled_l, pooled_g], dim=-1)  # [1,2048]
+
+        # Store on GPU for reuse during training
+        return encoder_hidden_states, pooled_projections
+
 
     def save_checkpoint(self, global_step: int):
         """Save LoRA checkpoint"""
@@ -270,14 +409,25 @@ class LoRATrainer:
             self.train_dataloader
         )
 
-        # Move models to device
-        self.vae.to(self.accelerator.device)
+        # Move models to device and check if latents precomputed
+        if not (self.use_precomputed_latents and self.latents_path):
+            self.vae.to(self.accelerator.device)
+
         if self.model_version == "sd3.5":
             self.text_encoder_l.to(self.accelerator.device)
             self.text_encoder_g.to(self.accelerator.device)
             self.text_encoder_t5.to(self.accelerator.device)
         else:
             self.text_encoder.to(self.accelerator.device)
+
+        self.static_caption = "A photo of a tree"  # Static caption for precomputing text encodings in SD3.5
+        self.static_encoder_hidden_states = None
+        self.static_pooled_projections = None
+
+        if self.model_version == "sd3.5":
+            self.static_encoder_hidden_states, self.static_pooled_projections = self._precompute_static_text_cond_sd35(
+                self.static_caption,
+                device=self.accelerator.device)
 
         # Set training mode
         self.unet.train()
@@ -318,8 +468,12 @@ class LoRATrainer:
             for batch in self.train_dataloader:
                 with self.accelerator.accumulate(self.unet):
                     # Encode images to latents
-                    latents = self.vae.encode(batch["pixel_values"].to(self.accelerator.device)).latent_dist.sample()
-                    latents = latents * self.vae.config.scaling_factor
+                    if "latents" in batch:
+                        # Precomputed latents are already scaled, stored float32 CPU
+                        latents = batch["latents"].to(self.accelerator.device, dtype=self.unet.dtype)
+                    else:
+                        latents = self.vae.encode(batch["pixel_values"].to(self.accelerator.device)).latent_dist.sample()
+                        latents = latents * self.vae.config.scaling_factor
 
                     # Sample noise
                     noise = torch.randn_like(latents)
@@ -354,63 +508,67 @@ class LoRATrainer:
                         device = self.accelerator.device
                         weight_dtype = latents.dtype # torch.float32
 
-                        # -----------------------------
-                        # CLIP-L
-                        # -----------------------------
-                        out_l = self.text_encoder_l(
-                            batch["input_ids_l"].to(device),
-                            output_hidden_states=True,
-                            return_dict=True,
-                        )
-                        hidden_states_l = out_l.hidden_states[-2]
-                        pooled_l = out_l.text_embeds
+                        B = noisy_latents.shape[0]
+                        encoder_hidden_states = self.static_encoder_hidden_states.expand(B, -1, -1).contiguous()
+                        pooled_projections = self.static_pooled_projections.expand(B, -1).contiguous()
 
-                        # -----------------------------
-                        # CLIP-G
-                        # -----------------------------
-                        out_g = self.text_encoder_g(
-                            batch["input_ids_g"].to(device),
-                            output_hidden_states=True,
-                            return_dict=True,
-                        )
-                        hidden_states_g = out_g.hidden_states[-2]
-                        pooled_g = out_g.text_embeds
+                        # # -----------------------------
+                        # # CLIP-L
+                        # # -----------------------------
+                        # out_l = self.text_encoder_l(
+                        #     batch["input_ids_l"].to(device),
+                        #     output_hidden_states=True,
+                        #     return_dict=True,
+                        # )
+                        # hidden_states_l = out_l.hidden_states[-2]
+                        # pooled_l = out_l.text_embeds
 
-                        # -----------------------------
-                        # Combine CLIP token embeddings
-                        # -----------------------------
-                        clip_embeds = torch.cat([hidden_states_l, hidden_states_g], dim=-1)  # [B,77,2048]
+                        # # -----------------------------
+                        # # CLIP-G
+                        # # -----------------------------
+                        # out_g = self.text_encoder_g(
+                        #     batch["input_ids_g"].to(device),
+                        #     output_hidden_states=True,
+                        #     return_dict=True,
+                        # )
+                        # hidden_states_g = out_g.hidden_states[-2]
+                        # pooled_g = out_g.text_embeds
 
-                        # Pad to 4096
-                        clip_embeds = torch.nn.functional.pad(
-                            clip_embeds,
-                            (0, 4096 - clip_embeds.shape[-1])
-                        )  # [B,77,4096]
+                        # # -----------------------------
+                        # # Combine CLIP token embeddings
+                        # # -----------------------------
+                        # clip_embeds = torch.cat([hidden_states_l, hidden_states_g], dim=-1)  # [B,77,2048]
 
-                        # -----------------------------
-                        # T5 full sequence
-                        # -----------------------------
-                        t5_out = self.text_encoder_t5(
-                            batch["t5_input_ids"].to(device),
-                            return_dict=True,
-                        )
-                        hidden_states_t5 = t5_out.last_hidden_state  # [B,256,4096]
+                        # # Pad to 4096
+                        # clip_embeds = torch.nn.functional.pad(
+                        #     clip_embeds,
+                        #     (0, 4096 - clip_embeds.shape[-1])
+                        # )  # [B,77,4096]
 
-                        # -----------------------------
-                        # Final encoder_hidden_states
-                        # -----------------------------
-                        encoder_hidden_states = torch.cat(
-                            [clip_embeds, hidden_states_t5],
-                            dim=1
-                        )  # [B,333,4096]
+                        # # -----------------------------
+                        # # T5 full sequence
+                        # # -----------------------------
+                        # t5_out = self.text_encoder_t5(
+                        #     batch["t5_input_ids"].to(device),
+                        #     return_dict=True,
+                        # )
+                        # hidden_states_t5 = t5_out.last_hidden_state  # [B,256,4096]
 
-                        # -----------------------------
-                        # Pooled projections (CLIP ONLY)
-                        # -----------------------------
-                        pooled_projections = torch.cat(
-                            [pooled_l, pooled_g],
-                            dim=-1
-                        )
+                        # # -----------------------------
+                        # # Final encoder_hidden_states
+                        # # -----------------------------
+                        # encoder_hidden_states = torch.cat(
+                        #     [clip_embeds, hidden_states_t5],
+                        #     dim=1
+                        # )  # [B,333,4096]
+
+                        # # -----------------------------
+                        # # Pooled projections (CLIP ONLY)
+                        # # -----------------------------
+                        # pooled_projections = torch.cat(
+                        #     [pooled_l, pooled_g],
+                        #     dim=-1
+                        # )
 
                         # -----------------------------
                         # Timesteps (Flow matching)
@@ -514,20 +672,27 @@ def train_model(
     def collate_fn(examples, trainer: LoRATrainer):
         import torchvision.transforms as transforms
 
-        transform = transforms.Compose([
-            transforms.Resize(512),
-            transforms.CenterCrop(512),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5], [0.5]),
-        ])
+        captions = [ex["caption"] for ex in examples]
 
-        pixel_values = torch.stack([transform(ex["image"]) for ex in examples])
-        captions = [ex["caption"] for ex in examples]  # or however text is stored
+        batch = {}
 
-        batch = {
-            "pixel_values": pixel_values,
-        }
+        # --- Prefer precomputed latents if present ---
+        if "latents" in examples[0]:
+            # latents are [C,H,W] float32 on CPU
+            latents = torch.stack([ex["latents"] for ex in examples])  # [B,C,H,W]
+            batch["latents"] = latents
+        else:
+            # Fallback: compute pixel_values (old behavior)
+            transform = transforms.Compose([
+                transforms.Resize(512),
+                transforms.CenterCrop(512),
+                transforms.ToTensor(),
+                transforms.Normalize([0.5], [0.5]),
+            ])
+            pixel_values = torch.stack([transform(ex["image"]) for ex in examples])
+            batch["pixel_values"] = pixel_values
 
+        # --- Tokenization ---
         if trainer.model_version == "sd1.5":
             tokens = trainer.tokenizer(
                 captions,
@@ -537,35 +702,28 @@ def train_model(
                 return_tensors="pt",
             )
             batch["input_ids"] = tokens.input_ids
+        else: # SD 3.5
+            # tokens_l = trainer.tokenizer_l(
+            #     captions, padding="max_length", truncation=True,
+            #     max_length=trainer.tokenizer_l.model_max_length, return_tensors="pt",
+            # )
+            # tokens_g = trainer.tokenizer_g(
+            #     captions, padding="max_length", truncation=True,
+            #     max_length=trainer.tokenizer_g.model_max_length, return_tensors="pt",
+            # )
+            # tokens_t5 = trainer.tokenizer_t5(
+            #     captions, padding="max_length", truncation=True,
+            #     max_length=trainer.tokenizer_t5.model_max_length, return_tensors="pt",
+            # )
 
-        else:  # SD3.5
-            tokens_l = trainer.tokenizer_l(
-                captions,
-                padding="max_length",
-                truncation=True,
-                max_length=trainer.tokenizer_l.model_max_length,
-                return_tensors="pt",
-            )
-            tokens_g = trainer.tokenizer_g(
-                captions,
-                padding="max_length",
-                truncation=True,
-                max_length=trainer.tokenizer_g.model_max_length,
-                return_tensors="pt",
-            )
-            tokens_t5 = trainer.tokenizer_t5(
-                captions,
-                padding="max_length",
-                truncation=True,
-                max_length=trainer.tokenizer_t5.model_max_length,
-                return_tensors="pt",
-            )
-
-            batch.update({
-                "input_ids_l": tokens_l.input_ids,
-                "input_ids_g": tokens_g.input_ids,
-                "t5_input_ids": tokens_t5.input_ids,
-            })
+            # batch.update({
+            #     "input_ids_l": tokens_l.input_ids,
+            #     "input_ids_g": tokens_g.input_ids,
+            #     "t5_input_ids": tokens_t5.input_ids,
+            # })
+            pass
+            # Pass - since we precompute static text encodings for SD3.5, we don't need to tokenize each batch in the collate_fn. 
+            # Instead, we can just return the batch and use the precomputed encodings during training.
 
         return batch
 
