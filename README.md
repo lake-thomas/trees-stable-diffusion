@@ -48,7 +48,7 @@ python make_genus_splits.py \
   --output_root ./sd-genus-images
 ```
 
-Precopmuate Image Latents (recommended for faster fine-tuning)
+Precompute Image Latents (recommended for faster fine-tuning)
 
 ```bash
 python precompute_latents.py \
