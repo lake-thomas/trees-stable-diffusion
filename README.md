@@ -5,10 +5,9 @@ A unified Python package for fine-tuning Stable Diffusion models with LoRA on tr
 ## Features
 
 - 🌲 **Unified Interface**: Single codebase supporting both SD1.5 and SD3.5
-- 🎯 **LoRA Fine-tuning**: Efficient parameter-efficient fine-tuning with LoRA
-- 📊 **Multiple Datasets**: Built-in support for iNaturalist and Autoarborist formats
+- 🎯 **LoRA Fine-tuning**: Parameter-efficient fine-tuning (PEFT) with LoRA
+- 📊 **Multiple Datasets**: Supports iNaturalist and Autoarborist formats
 - ⚙️ **Flexible Configuration**: Command-line arguments or YAML config files
-- 🚀 **Production Ready**: Accelerate integration for distributed training
 - 💾 **Checkpointing**: Regular checkpoint saving during training
 
 ## Example Output
